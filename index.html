@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Darren Robson — Data & Automation Specialist</title>
+<meta name="description" content="Darren Robson. Data entry and reporting specialist with IT infrastructure certifications, based in Sandton, South Africa.">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="favicon-16.png" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:ital,wght@0,500;0,700;1,500;1,700&display=swap">
+<style>
+:root{
+  --bg:#07130f; --bg2:#0b1f18; --ink:#eef7f1; --ink-dim:#9db3a8;
+  --mint:#3fe0a0; --mint-ink:#02120c;
+  --radius:20px; --ease:cubic-bezier(.16,1,.3,1);
+  --font: 'Space Grotesk', -apple-system, sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+h1,h2,h3{margin:0;font-family:var(--font);letter-spacing:-0.02em}
+p{margin:0;color:var(--ink-dim)}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+ul{margin:0;padding:0;list-style:none}
+
+.curtain-canvas{position:fixed;inset:0;z-index:-2;width:100%;height:100%;display:block;background:linear-gradient(180deg,#07130f,#0a1c15 40%,#07130f)}
+.bg-vignette{position:fixed;inset:0;z-index:-1;background:radial-gradient(ellipse 1200px 800px at 20% 0%, rgba(16,51,36,.55) 0%, transparent 60%),radial-gradient(ellipse 900px 700px at 100% 100%, rgba(7,19,15,.7) 0%, transparent 60%);pointer-events:none}
+
+.icon{display:inline-block;width:1em;height:1em;background-color:currentColor;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;flex-shrink:0}
+.i-download{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/download-simple.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/download-simple.svg)}
+.i-pin{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/map-pin.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/map-pin.svg)}
+.i-linkedin{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/linkedin-logo.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/linkedin-logo.svg)}
+.i-mail{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/envelope-simple.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/envelope-simple.svg)}
+.i-phone{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/phone.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/phone.svg)}
+.i-arrow{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/arrow-square-out.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/arrow-square-out.svg)}
+.i-cert{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/certificate.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/certificate.svg)}
+.i-database{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/database.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/database.svg)}
+.i-desktop{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/desktop-tower.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/desktop-tower.svg)}
+.i-globe{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/globe.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/globe.svg)}
+.i-code{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/code.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/code.svg)}
+.i-plus{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/plus.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/plus.svg)}
+.i-robot{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/robot.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/robot.svg)}
+.i-controller{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/game-controller.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/game-controller.svg)}
+
+.rail{position:fixed;left:22px;top:50%;transform:translateY(-50%);width:26px;height:120px;border:1px solid rgba(255,255,255,0.14);border-radius:999px;z-index:50;display:flex;align-items:flex-start;justify-content:center;padding-top:6px}
+.rail-dot{width:6px;height:6px;border-radius:50%;background:var(--mint);transition:transform .1s linear}
+@media (max-width:900px){.rail{display:none}}
+
+.nav{max-width:1280px;margin:0 auto;padding:28px 40px}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;gap:24px}
+.nav-brand{font-weight:700;font-size:1.1rem;letter-spacing:0.02em;flex-shrink:0}
+.nav-links{display:flex;gap:32px;margin-right:auto;margin-left:48px}
+.nav-links a{font-size:12.5px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-dim);transition:color .2s var(--ease)}
+.nav-links a:hover{color:var(--ink)}
+.nav-cta{padding:10px 20px;font-size:.82rem;flex-shrink:0}
+.nav-toggle{display:none;flex-direction:column;justify-content:center;gap:5px;background:none;border:1px solid rgba(255,255,255,.2);border-radius:10px;width:42px;height:38px;cursor:pointer;flex-shrink:0}
+.nav-toggle span{display:block;width:18px;height:2px;background:var(--ink);margin:0 auto;border-radius:2px;transition:transform .25s var(--ease),opacity .25s var(--ease)}
+.nav-toggle.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.nav-toggle.open span:nth-child(2){opacity:0}
+.nav-toggle.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.nav-mobile{display:none;flex-direction:column;margin-top:14px;padding:8px 20px 16px;border-radius:var(--radius);background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08)}
+.nav-mobile.open{display:flex}
+.nav-mobile a{padding:12px 0;font-size:13.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-dim);border-bottom:1px solid rgba(255,255,255,.08)}
+.nav-mobile a:last-child{border-bottom:none;color:var(--mint)}
+
+.hero{max-width:1280px;margin:0 auto;padding:40px 40px 80px;display:grid;grid-template-columns:1.2fr .8fr;gap:40px;align-items:center}
+.badges{display:flex;gap:10px;margin-bottom:28px;flex-wrap:wrap}
+.badge{font-size:11.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:7px 14px;border-radius:999px}
+.badge-solid{background:var(--mint);color:var(--mint-ink)}
+.badge-outline{border:1px solid rgba(63,224,160,.5);color:var(--mint)}
+.hero h1{font-size:clamp(2.8rem,6vw,4.6rem);font-weight:700;line-height:0.98}
+.hero h1 em{display:block;font-style:italic;color:var(--mint);font-weight:500}
+.hero-sub{max-width:48ch;font-size:1.05rem;margin:24px 0 32px;line-height:1.65}
+.hero-sub strong{color:var(--ink);font-weight:700}
+.hero-actions{display:flex;gap:14px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:15px 26px;border-radius:999px;font-weight:700;font-size:.95rem;white-space:nowrap;transition:transform .2s var(--ease),background .2s var(--ease)}
+.btn:active{transform:scale(.97)}
+.btn-solid{background:var(--mint);color:var(--mint-ink)}
+.btn-solid:hover{background:#5cf0b3}
+.btn-outline{border:1px solid rgba(255,255,255,.22);color:var(--ink)}
+.btn-outline:hover{border-color:var(--mint);color:var(--mint)}
+
+.portrait{border-radius:28px;overflow:hidden;aspect-ratio:4/4.6;border:1px solid rgba(255,255,255,.1);box-shadow:0 40px 90px rgba(0,0,0,.5)}
+.portrait img{width:100%;height:100%;object-fit:cover}
+
+.section{max-width:1280px;margin:0 auto;padding:60px 40px}
+.section-head{display:flex;align-items:center;gap:14px;margin-bottom:36px}
+.section-head .dash{width:28px;height:3px;background:var(--mint);border-radius:2px}
+.section-head h2{font-size:1.7rem;font-weight:700}
+
+.card{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:32px}
+
+.timeline-item{display:grid;grid-template-columns:170px 1fr;gap:32px}
+.timeline-date{font-size:13px;color:var(--mint);font-weight:700;letter-spacing:.04em}
+.timeline-content h3{font-size:1.25rem;margin-bottom:6px}
+.timeline-org{color:var(--ink-dim);font-size:.92rem;margin-bottom:18px}
+.timeline-list li{position:relative;padding-left:22px;margin-bottom:12px;font-size:.96rem;color:var(--ink-dim);line-height:1.6}
+.timeline-list li::before{content:"";position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--mint)}
+
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.grid-skills{grid-template-columns:repeat(2,1fr)}
+.tile{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:26px}
+.tile .icon{font-size:22px;color:var(--mint);margin-bottom:14px}
+.tile h3{font-size:1.02rem;margin-bottom:8px}
+.tile p{font-size:.9rem}
+
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.cert{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:24px;display:flex;flex-direction:column;gap:10px;transition:border-color .2s var(--ease)}
+.cert:hover{border-color:var(--mint)}
+.cert .icon{font-size:20px;color:var(--mint)}
+.cert h3{font-size:.98rem}
+.cert-meta{font-size:.8rem;color:var(--ink-dim)}
+.cert a{margin-top:auto;color:var(--mint);font-weight:700;font-size:.84rem;display:inline-flex;align-items:center;gap:6px}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.panel-list li{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:.94rem}
+.panel-list li:last-child{border-bottom:none}
+.panel-tag{color:var(--ink-dim);font-size:.82rem}
+
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.pcard{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:26px;display:flex;flex-direction:column;gap:10px;transition:border-color .2s var(--ease),transform .2s var(--ease)}
+.pcard.empty{border-style:dashed;background:transparent}
+a.pcard:hover{border-color:var(--mint);transform:translateY(-3px)}
+.pcard .icon{font-size:20px;color:var(--mint)}
+.pcard-link{margin-top:auto;color:var(--mint);font-weight:700;font-size:.84rem;display:inline-flex;align-items:center;gap:6px}
+.pcard-icon{filter:drop-shadow(0 0 5px rgba(63,224,160,.4))}
+.status{align-self:flex-start;font-size:.75rem;font-weight:700;padding:4px 12px;border-radius:999px;background:rgba(63,224,160,.14);color:var(--mint)}
+
+.contact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.ccard{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:22px;transition:border-color .2s var(--ease)}
+.ccard:hover{border-color:var(--mint)}
+.ccard .icon{font-size:20px;color:var(--mint)}
+.clabel{font-size:.76rem;color:var(--ink-dim);display:block}
+.cvalue{font-size:.9rem;font-weight:700}
+
+.footer{max-width:1280px;margin:0 auto;padding:30px 40px;border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;font-size:.85rem;color:var(--ink-dim)}
+
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr;padding-top:20px}
+  .grid3,.grid4,.two,.pgrid,.contact-grid{grid-template-columns:1fr}
+  .timeline-item{grid-template-columns:1fr;gap:10px}
+  .nav,.hero,.section,.footer{padding-left:20px;padding-right:20px}
+}
+
+@media (max-width:760px){
+  .nav-links,.nav-cta{display:none}
+  .nav-toggle{display:flex}
+}
+</style>
+</head>
+<body>
+<canvas id="curtainCanvas" class="curtain-canvas" aria-hidden="true"></canvas>
+<div class="bg-vignette"></div>
+<div class="rail" aria-hidden="true"><div class="rail-dot" id="railDot"></div></div>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-brand">DARREN ROBSON</a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#experience">Experience</a>
+      <a href="#skills">Skills</a>
+      <a href="#certifications">Certifications</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <a href="assets/Darren_Robson_CV.pdf" class="btn btn-outline nav-cta" download>
+      <span class="icon i-download"></span> Resume
+    </a>
+    <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <nav class="nav-mobile" id="navMobile" aria-label="Mobile">
+    <a href="#experience">Experience</a>
+    <a href="#skills">Skills</a>
+    <a href="#certifications">Certifications</a>
+    <a href="#contact">Contact</a>
+    <a href="assets/Darren_Robson_CV.pdf" download>Download resume</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="reveal">
+    <div class="badges">
+      <span class="badge badge-solid">IT Certified</span>
+      <span class="badge badge-outline">Fluent EN &amp; AF</span>
+    </div>
+    <h1>Data &amp; Automation<br><em>Specialist.</em></h1>
+    <p class="hero-sub">IT-certified professional focused on streamlining high-volume workflows through <strong>VBA automation</strong> and careful <strong>data reconciliation</strong>. I turn manual reporting into fast, accurate systems.</p>
+    <div class="hero-actions">
+      <a href="#contact" class="btn btn-solid">Available for Hire</a>
+      <a href="https://linkedin.com/in/darren-robson" class="btn btn-outline" target="_blank" rel="noopener">
+        <span class="icon i-linkedin"></span> LinkedIn
+      </a>
+    </div>
+  </div>
+  <div class="portrait reveal">
+    <img src="assets/headshot.jpg" alt="Portrait of Darren Robson">
+  </div>
+</section>
+
+<section class="section" id="experience">
+  <div class="section-head"><span class="dash"></span><h2>Professional Experience</h2></div>
+  <div class="card">
+    <div class="timeline-item">
+      <div class="timeline-date">MAR 2023 — PRESENT</div>
+      <div class="timeline-content">
+        <h3>Data Entry &amp; Reporting Specialist</h3>
+        <p class="timeline-org">MacPherson Crafts (Canada) · Remote</p>
+        <ul class="timeline-list">
+          <li>Reconcile sales and payment reports from PayPal and Stripe for the accounting and bookkeeping department.</li>
+          <li>Format, clean and maintain Excel and Google Sheets containing large volumes of sales data.</li>
+          <li>Automated daily PayPal and Stripe report formatting with VBA and Macros, cutting per-sheet processing from roughly thirty minutes to near-instant and saving over eighteen hours a month.</li>
+          <li>Manage website content and product listings, keeping information accurate and current.</li>
+          <li>Provide general administrative support: records, documentation and workflow coordination.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="skills">
+  <div class="section-head"><span class="dash"></span><h2>Skills</h2></div>
+  <div class="grid3 grid-skills">
+    <div class="tile"><span class="icon i-database"></span><h3>Data &amp; Reporting</h3><p>Excel &amp; VBA/Macro automation, Google Sheets, SQL, PayPal &amp; Stripe reconciliation, bookkeeping support.</p></div>
+    <div class="tile"><span class="icon i-desktop"></span><h3>IT Infrastructure</h3><p>Windows Server 2016 configuration, hardware build and repair, Windows and macOS.</p></div>
+    <div class="tile"><span class="icon i-globe"></span><h3>Web &amp; Admin</h3><p>Website and listing administration, content upkeep, records management.</p></div>
+    <div class="tile"><span class="icon i-robot"></span><h3>AI Tooling</h3><p>Well versed in Claude, Claude Code, ChatGPT and Codex, including AI-aided app and website development, automation and workflow design.</p></div>
+  </div>
+</section>
+
+<section class="section" id="certifications">
+  <div class="section-head"><span class="dash"></span><h2>Certifications</h2></div>
+  <div class="grid4">
+    <article class="cert"><span class="icon i-cert"></span><h3>CompTIA Network+</h3><p class="cert-meta">N10-008 · 2022</p><a href="assets/certs/comptia-network-plus.pdf" target="_blank" rel="noopener">View <span class="icon i-arrow"></span></a></article>
+    <article class="cert"><span class="icon i-cert"></span><h3>CompTIA A+</h3><p class="cert-meta">2022</p><a href="assets/certs/comptia-a-plus.pdf" target="_blank" rel="noopener">View <span class="icon i-arrow"></span></a></article>
+    <article class="cert"><span class="icon i-cert"></span><h3>MCSA: Windows Server 2016</h3><p class="cert-meta">2022</p><a href="assets/certs/mcsa-windows-server-2016.pdf" target="_blank" rel="noopener">View <span class="icon i-arrow"></span></a></article>
+    <article class="cert"><span class="icon i-cert"></span><h3>EF SET English</h3><p class="cert-meta">EF Standard Test</p><a href="assets/certs/efset-english.pdf" target="_blank" rel="noopener">View <span class="icon i-arrow"></span></a></article>
+  </div>
+</section>
+
+<section class="section">
+  <div class="two">
+    <div class="card">
+      <h3 style="margin-bottom:16px">Languages</h3>
+      <ul class="panel-list">
+        <li><span>English</span><span class="panel-tag">Fluent, home language</span></li>
+        <li><span>Afrikaans</span><span class="panel-tag">Fluent, home language</span></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:10px">Education</h3>
+      <p style="color:var(--ink);font-weight:700">Grade 12, National Senior Certificate</p>
+      <p style="color:var(--mint);margin:4px 0 10px">Think Digital College</p>
+      <p style="font-size:.92rem">Mathematical Literacy and Computer Applications Technology. Previously Hoerskool Waterkloof, Grade 8 to 10.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="projects">
+  <div class="section-head"><span class="dash"></span><h2>Projects</h2></div>
+  <div class="pgrid">
+    <article class="pcard"><span class="icon i-code"></span><h3>This portfolio</h3><p>Hand-built resume and portfolio site.</p><span class="status">Live</span></article>
+    <a href="chroma.html" class="pcard">
+      <img src="assets/chroma-icon-64.png" alt="" width="26" height="26" class="pcard-icon">
+      <h3>Chroma.GG</h3>
+      <p>Windows tray app for automatic per-game display tuning, plus overlays, replay capture and more.</p>
+      <span class="status">In development</span>
+      <span class="pcard-link">View project <span class="icon i-arrow"></span></span>
+    </a>
+    <article class="pcard empty"><span class="icon i-plus"></span><h3>Reserved</h3><p>Check back soon.</p><span class="status">Coming soon</span></article>
+  </div>
+</section>
+
+<section class="section" id="contact">
+  <div class="section-head"><span class="dash"></span><h2>Let's work together</h2></div>
+  <div class="contact-grid">
+    <a class="ccard" href="mailto:darrenrobson2001.dr@gmail.com"><span class="icon i-mail"></span><span><span class="clabel">Email</span><span class="cvalue">darrenrobson2001.dr@gmail.com</span></span></a>
+    <a class="ccard" href="tel:+27844114748"><span class="icon i-phone"></span><span><span class="clabel">Phone</span><span class="cvalue">084 411 4748</span></span></a>
+    <a class="ccard" href="https://linkedin.com/in/darren-robson" target="_blank" rel="noopener"><span class="icon i-linkedin"></span><span><span class="clabel">LinkedIn</span><span class="cvalue">linkedin.com/in/darren-robson</span></span></a>
+  </div>
+</section>
+
+<footer class="footer">
+  <span>© 2026 Darren Robson</span>
+  <span><span class="icon i-pin"></span> Sandton, Gauteng, South Africa</span>
+</footer>
+
+<script src="shader-curtain.js"></script>
+<script>
+var navToggle=document.getElementById('navToggle');
+var navMobile=document.getElementById('navMobile');
+if(navToggle && navMobile){
+  navToggle.addEventListener('click',function(){
+    var open=navMobile.classList.toggle('open');
+    navToggle.classList.toggle('open',open);
+    navToggle.setAttribute('aria-expanded',String(open));
+  });
+  navMobile.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click',function(){
+      navMobile.classList.remove('open');
+      navToggle.classList.remove('open');
+      navToggle.setAttribute('aria-expanded','false');
+    });
+  });
+}
+
+var railDot=document.getElementById('railDot');
+window.addEventListener('scroll',function(){},{passive:true});
+function raf(){
+  var h=document.documentElement;
+  var pct=h.scrollTop/(h.scrollHeight-h.clientHeight||1);
+  if(railDot) railDot.style.transform='translateY('+(pct*94)+'px)';
+  requestAnimationFrame(raf);
+}
+if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches) requestAnimationFrame(raf);
+
+var items=document.querySelectorAll('.reveal');
+if('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.15});
+  items.forEach(function(el){io.observe(el)});
+}else{
+  items.forEach(function(el){el.classList.add('in')});
+}
+</script>
+</body>
+</html>

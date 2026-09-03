@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chroma.GG — Darren Robson</title>
+<meta name="description" content="Chroma.GG: a Windows tray app for automatic per-game display tuning and companion gaming utilities, built by Darren Robson.">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="favicon-16.png" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:ital,wght@0,500;0,700;1,500;1,700&display=swap">
+<style>
+:root{
+  --bg:#0b0a13; --bg2:#160e22; --ink:#f4f1fa; --ink-dim:#a89cbd;
+  --violet:#a855f7; --accent:#ec4899; --accent-ink:#1a0a14;
+  --accent-gradient:linear-gradient(90deg, var(--violet), var(--accent));
+  --radius:20px; --ease:cubic-bezier(.16,1,.3,1);
+  --font: 'Space Grotesk', -apple-system, sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+h1,h2,h3{margin:0;font-family:var(--font);letter-spacing:-0.02em}
+p{margin:0;color:var(--ink-dim)}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+ul{margin:0;padding:0;list-style:none}
+
+.curtain-canvas{position:fixed;inset:0;z-index:-2;width:100%;height:100%;display:block;background:linear-gradient(180deg,#0b0a13,#160e22 40%,#0b0a13)}
+.bg-vignette{position:fixed;inset:0;z-index:-1;background:radial-gradient(ellipse 1200px 800px at 20% 0%, rgba(88,40,140,.45) 0%, transparent 60%),radial-gradient(ellipse 900px 700px at 100% 100%, rgba(11,10,19,.7) 0%, transparent 60%);pointer-events:none}
+
+.icon{display:inline-block;width:1em;height:1em;background-color:currentColor;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;flex-shrink:0}
+.i-arrow-left{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/arrow-left.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/arrow-left.svg)}
+.i-monitor{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/monitor.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/monitor.svg)}
+.i-crosshair{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/crosshair.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/crosshair.svg)}
+.i-chart{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/chart-line.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/chart-line.svg)}
+.i-video{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/video-camera.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/video-camera.svg)}
+.i-groups{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/squares-four.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/squares-four.svg)}
+.i-scan{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/magnifying-glass.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/magnifying-glass.svg)}
+.i-palette{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/palette.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/palette.svg)}
+.i-lightning{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/lightning.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/lightning.svg)}
+.i-cpu{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/cpu.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/cpu.svg)}
+.i-play{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/play-circle.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/play-circle.svg)}
+.i-scissors{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/scissors.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/scissors.svg)}
+.i-controller{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/game-controller.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/game-controller.svg)}
+.i-spotify{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/spotify-logo.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/spotify-logo.svg)}
+.i-broadcast{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/broadcast.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/broadcast.svg)}
+.i-power{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/power.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/power.svg)}
+
+.rail{position:fixed;left:22px;top:50%;transform:translateY(-50%);width:26px;height:120px;border:1px solid rgba(255,255,255,0.14);border-radius:999px;z-index:50;display:flex;align-items:flex-start;justify-content:center;padding-top:6px}
+.rail-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);transition:transform .1s linear}
+@media (max-width:900px){.rail{display:none}}
+
+.nav{max-width:1280px;margin:0 auto;padding:24px 40px}
+.nav-inner{display:flex;align-items:center;gap:20px}
+.nav-back{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:.92rem;color:var(--ink-dim);transition:color .2s var(--ease);flex-shrink:0}
+.nav-back:hover{color:var(--accent)}
+.nav-back .icon{font-size:16px}
+.nav-links{display:flex;align-items:center;justify-content:center;gap:26px;flex:1}
+.nav-links a{font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-dim);transition:color .2s var(--ease);white-space:nowrap}
+.nav-links a:hover{color:var(--accent)}
+.nav-brand{display:inline-flex;align-items:center;gap:9px;font-weight:700;font-size:1.05rem;letter-spacing:0.02em;flex-shrink:0}
+.nav-brand img{filter:drop-shadow(0 0 6px rgba(236,72,153,.35))}
+.nav-toggle{display:none;flex-direction:column;justify-content:center;gap:5px;background:none;border:1px solid rgba(255,255,255,.2);border-radius:10px;width:42px;height:38px;cursor:pointer;flex-shrink:0}
+.nav-toggle span{display:block;width:18px;height:2px;background:var(--ink);margin:0 auto;border-radius:2px;transition:transform .25s var(--ease),opacity .25s var(--ease)}
+.nav-toggle.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.nav-toggle.open span:nth-child(2){opacity:0}
+.nav-toggle.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.nav-mobile{display:none;flex-direction:column;max-width:1280px;margin:10px auto 0;padding:8px 20px 16px;border-radius:var(--radius);background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08)}
+.nav-mobile.open{display:flex}
+.nav-mobile a{padding:12px 0;font-size:13.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-dim);border-bottom:1px solid rgba(255,255,255,.08)}
+.nav-mobile a:last-child{border-bottom:none;color:var(--accent)}
+@media (max-width:980px){.nav-links,.nav-brand{display:none}.nav-toggle{display:flex}}
+
+.hero{max-width:1280px;margin:0 auto;padding:50px 40px 70px}
+.badges{display:flex;gap:10px;margin-bottom:26px;flex-wrap:wrap}
+.hero-title{display:flex;align-items:center;gap:18px}
+.hero-icon{filter:drop-shadow(0 0 10px rgba(236,72,153,.35));flex-shrink:0}
+.badge{font-size:11.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:7px 14px;border-radius:999px}
+.badge-solid{background:var(--accent-gradient);color:#fff}
+.badge-outline{border:1px solid rgba(236,72,153,.5);color:var(--accent)}
+.hero h1{font-size:clamp(2.8rem,6vw,4.6rem);font-weight:700;line-height:0.98}
+.hero h1 em{font-style:italic;color:var(--accent);font-weight:500}
+.hero-sub{max-width:62ch;font-size:1.08rem;margin:24px 0 0;line-height:1.7}
+.hero-meta{margin-top:28px;font-size:.85rem;color:var(--ink-dim);font-family:monospace}
+.hero-meta span{color:var(--accent)}
+
+.section{max-width:1280px;margin:0 auto;padding:50px 40px}
+.section-head{display:flex;align-items:center;gap:14px;margin-bottom:36px}
+.section-head .dash{width:28px;height:3px;background:var(--accent);border-radius:2px}
+.section-head h2{font-size:1.7rem;font-weight:700}
+
+.spotlight{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:36px;display:grid;grid-template-columns:52px 1fr;gap:24px}
+.spotlight .icon-wrap{width:52px;height:52px;border-radius:16px;background:rgba(236,72,153,.12);display:flex;align-items:center;justify-content:center}
+.spotlight .icon-wrap .icon{font-size:26px;color:var(--accent)}
+.spotlight h3{font-size:1.35rem;margin-bottom:12px}
+.spotlight p{font-size:1rem;margin-bottom:14px;line-height:1.7}
+.spotlight ul{margin-top:14px}
+.spotlight ul li{position:relative;padding-left:22px;margin-bottom:10px;font-size:.95rem;color:var(--ink-dim);line-height:1.6}
+.spotlight ul li::before{content:"";position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+
+.perf-demo{margin-top:20px}
+.perf-frame{position:relative;aspect-ratio:16/9;border-radius:var(--radius);overflow:hidden;border:1px solid rgba(255,255,255,.1);box-shadow:0 30px 70px rgba(0,0,0,.45);background:#000}
+.perf-frame video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.perf-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:16px;flex-wrap:wrap}
+.perf-toggle-row p{font-size:.85rem;margin:0}
+
+.cross-demo{margin-top:20px}
+.xh-mark{position:absolute;top:50%;left:50%;width:21px;height:21px;transform:translate(-50%,-50%);opacity:0;transition:opacity .2s var(--ease);pointer-events:none}
+.xh-mark.visible{opacity:1}
+.xh-svg{display:none;position:absolute;inset:0}
+.xh-mark[data-style="dot"] .xh-dot{display:block}
+.xh-mark[data-style="cross"] .xh-cross{display:block}
+
+.cross-controls{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:16px;flex-wrap:wrap}
+.cross-picker{display:flex;gap:10px}
+.cross-swatch{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:border-color .2s var(--ease),background .2s var(--ease)}
+.cross-swatch:hover{border-color:rgba(255,255,255,.25)}
+.cross-swatch.active{border-color:var(--accent);background:rgba(236,72,153,.12)}
+
+.replay-demo{margin-top:20px}
+.replay-keycue{
+  position:absolute;bottom:22px;left:50%;transform:translate(-50%,6px);
+  padding:8px 13px;border-radius:8px;
+  background:rgba(15,15,20,.85);border:1px solid rgba(255,255,255,.18);
+  font-family:'Space Grotesk',monospace;font-weight:700;font-size:13px;color:#fff;
+  box-shadow:0 8px 20px rgba(0,0,0,.4);
+  opacity:0;transition:opacity .3s var(--ease),transform .3s var(--ease);
+  pointer-events:none;
+}
+.replay-keycue.visible{opacity:1;transform:translate(-50%,0)}
+.replay-toast{
+  position:absolute;top:18px;right:18px;
+  display:flex;align-items:center;gap:12px;
+  padding:12px 18px 12px 14px;border-radius:14px;
+  background:rgba(12,10,16,.85);backdrop-filter:blur(6px);
+  border:1px solid rgba(236,72,153,.35);
+  box-shadow:0 16px 40px rgba(0,0,0,.5);
+  opacity:0;transform:translateY(-10px);transition:opacity .35s var(--ease),transform .35s var(--ease);
+  pointer-events:none;
+}
+.replay-toast.visible{opacity:1;transform:translateY(0)}
+.replay-toast-icon{width:32px;height:32px;border-radius:9px;background:var(--accent-gradient);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.replay-toast-icon .icon{font-size:16px;color:#fff}
+.replay-toast-text{display:flex;flex-direction:column;gap:1px}
+.replay-toast-text strong{font-size:.88rem;color:#fff}
+.replay-toast-text span{font-size:.78rem;color:var(--ink-dim)}
+
+.gallery{margin-top:20px}
+.gallery-head{font-size:1.15rem;font-weight:700;margin-bottom:20px;color:var(--ink)}
+.gallery-grid{display:grid;grid-template-columns:1fr 1.25fr;gap:24px;align-items:center}
+.gallery-shot-player{border-radius:var(--radius);overflow:hidden;border:1px solid rgba(255,255,255,.1);box-shadow:0 30px 70px rgba(0,0,0,.45)}
+.gallery-shot-player img{width:100%;display:block}
+.gallery-shot-app{padding:10px}
+.gallery-shot-app img{width:100%;display:block;filter:drop-shadow(0 26px 55px rgba(0,0,0,.55))}
+
+@media (max-width:800px){
+  .gallery-grid{grid-template-columns:1fr}
+}
+.perf-hud{
+  position:absolute;top:14px;left:14px;
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:'Space Grotesk',monospace;font-size:10.5px;font-weight:700;letter-spacing:.01em;
+  color:#fff;white-space:nowrap;cursor:grab;
+  text-shadow:0 1px 2px rgba(0,0,0,.95),0 0 6px rgba(0,0,0,.6);
+  opacity:0;pointer-events:none;transition:opacity .25s var(--ease);
+  -webkit-user-select:none;user-select:none;
+}
+.perf-hud.visible{opacity:1;pointer-events:auto}
+.perf-hud.dragging{cursor:grabbing;transition:none}
+.perf-hud .sep{color:rgba(255,255,255,.5)}
+.perf-hud .stat-label{color:#fff}
+.perf-hud .stat-fps,
+.perf-hud .stat-cpu,
+.perf-hud .stat-ram,
+.perf-hud .stat-gpu,
+.perf-hud .stat-temp,
+.perf-hud .stat-vram{color:var(--accent)}
+
+.ba-slider{margin-top:20px;position:relative}
+.ba-frame{position:relative;aspect-ratio:16/9;border-radius:var(--radius);overflow:hidden;border:1px solid rgba(255,255,255,.1);box-shadow:0 30px 70px rgba(0,0,0,.45);cursor:ew-resize;-webkit-user-select:none;user-select:none}
+.ba-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.ba-before-wrap{position:absolute;inset:0;clip-path:inset(0 calc(100% - var(--split, 50%)) 0 0)}
+.ba-label{position:absolute;bottom:16px;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:7px 14px;border-radius:999px;background:rgba(7,19,15,.65);border:1px solid rgba(255,255,255,.16);pointer-events:none}
+.ba-label-before{left:16px}
+.ba-label-after{right:16px;color:var(--accent);border-color:rgba(236,72,153,.4)}
+.ba-handle{position:absolute;top:0;bottom:0;left:var(--split, 50%);width:0;pointer-events:none}
+.ba-handle::before{content:"";position:absolute;top:0;bottom:0;left:-1px;width:2px;background:rgba(255,255,255,.85);box-shadow:0 0 12px rgba(0,0,0,.5)}
+.ba-handle-grip{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:42px;height:42px;border-radius:50%;background:var(--ink);display:flex;align-items:center;justify-content:center;gap:1px;box-shadow:0 6px 20px rgba(0,0,0,.5)}
+.ba-handle-grip .icon{width:11px;height:11px;background-color:var(--accent-ink)}
+.ba-handle-grip .ba-flip{transform:scaleX(-1)}
+.ba-range{-webkit-appearance:none;appearance:none;width:100%;margin:14px 0 0;height:28px;background:transparent;cursor:ew-resize}
+.ba-range::-webkit-slider-runnable-track{height:4px;background:rgba(255,255,255,.12);border-radius:999px}
+.ba-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);border:3px solid var(--bg);margin-top:-7px;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.ba-range::-moz-range-track{height:4px;background:rgba(255,255,255,.12);border-radius:999px}
+.ba-range::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--accent);border:3px solid var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.4)}
+
+.demo{margin-top:20px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:32px}
+.demo-label{font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:20px;display:block}
+.demo-main{display:flex;align-items:center;gap:16px;padding-bottom:24px;margin-bottom:24px;border-bottom:1px solid rgba(255,255,255,.08)}
+.demo-main-icon{width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .3s var(--ease)}
+.demo-main-icon .icon{font-size:24px;color:var(--ink-dim);transition:color .3s var(--ease)}
+.demo-main-info{flex:1;min-width:0}
+.demo-main-info h4{font-size:1.05rem;font-weight:700;margin-bottom:4px}
+.demo-status{display:inline-flex;align-items:center;gap:7px;font-size:.82rem;color:var(--ink-dim)}
+.demo-status::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ink-dim);transition:background .3s var(--ease)}
+.demo-toggle{flex-shrink:0;padding:12px 22px;font-size:.88rem}
+.demo.running .demo-main-icon{background:var(--accent-gradient)}
+.demo.running .demo-main-icon .icon{color:#fff}
+.demo.running .demo-status{color:var(--accent)}
+.demo.running .demo-status::before{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+
+.demo-apps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.demo-app{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding:20px 12px;border-radius:16px;border:1px solid rgba(255,255,255,.07);opacity:.45;transition:opacity .4s var(--ease),border-color .4s var(--ease),transform .4s var(--ease)}
+.demo-app-icon{width:40px;height:40px;border-radius:11px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center}
+.demo-app-icon .icon{font-size:19px;color:var(--ink-dim)}
+.demo-app-name{font-size:.84rem;font-weight:600}
+.demo-app-status{font-size:.72rem;color:var(--ink-dim);letter-spacing:.03em}
+.demo.running .demo-app{opacity:1;border-color:rgba(255,255,255,.1);transform:translateY(-2px)}
+.demo.running .demo-app-icon{background:var(--accent-gradient)}
+.demo.running .demo-app-icon .icon{color:#fff}
+.demo.running .demo-app-status{color:var(--accent)}
+.demo-app:nth-child(1){transition-delay:.02s}
+.demo-app:nth-child(2){transition-delay:.08s}
+.demo-app:nth-child(3){transition-delay:.14s}
+.demo-app:nth-child(4){transition-delay:.2s}
+.demo-app-stats{display:flex;align-items:center;gap:6px;font-size:.72rem;font-family:monospace;color:var(--ink-dim);opacity:.5;transition:opacity .3s var(--ease)}
+.demo.running .demo-app-stats{opacity:1}
+.demo.running .demo-app .stat-ram,.demo.running .demo-app .stat-cpu{color:var(--accent)}
+.stat-sep{opacity:.5}
+
+.freed-bar{margin-top:24px;padding-top:22px;border-top:1px solid rgba(255,255,255,.08)}
+.freed-bar-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;font-size:.85rem}
+.freed-bar-head span:first-child{color:var(--ink-dim)}
+.freed-bar-head span:last-child{font-weight:700;color:var(--accent);font-family:monospace}
+.freed-track{height:8px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden}
+.freed-fill{height:100%;width:0%;border-radius:999px;background:var(--accent-gradient);transition:width .6s var(--ease)}
+.demo.running .freed-fill{background:rgba(255,255,255,.1)}
+
+.demo-note{margin-top:22px;font-size:.85rem;color:var(--ink-dim)}
+.demo-note strong{color:var(--ink)}
+
+@media (max-width:640px){.demo-apps{grid-template-columns:repeat(2,1fr)}.demo-main{flex-wrap:wrap}}
+
+.library{margin-top:20px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:36px;display:grid;grid-template-columns:1fr 1fr;gap:32px}
+.library h3{font-size:1.3rem;margin-bottom:14px}
+.library p{font-size:.96rem;margin-bottom:14px;line-height:1.7}
+.library-feats li{display:flex;gap:12px;padding:14px 0;border-top:1px solid rgba(255,255,255,.08)}
+.library-feats li:first-child{border-top:none}
+.library-feats .icon{font-size:18px;color:var(--accent);flex-shrink:0;margin-top:2px}
+.library-feats strong{color:var(--ink);display:block;margin-bottom:3px;font-size:.92rem}
+.library-feats span{font-size:.86rem;color:var(--ink-dim)}
+
+.stack-grid{display:flex;flex-wrap:wrap;gap:12px}
+.stack-pill{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;border:1px solid rgba(255,255,255,.12);font-size:.85rem;font-weight:600}
+.stack-pill .icon{font-size:15px;color:var(--accent)}
+
+.stack-note{margin-top:28px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:26px}
+.stack-note h3{font-size:1rem;margin-bottom:10px}
+.stack-note p{font-size:.92rem;line-height:1.7}
+.stack-note code{color:var(--accent);font-family:monospace;font-size:.88em}
+
+.cta{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:40px;text-align:center}
+.cta h2{font-size:1.5rem;margin-bottom:12px}
+.cta p{max-width:52ch;margin:0 auto 24px;font-size:.98rem}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:15px 26px;border-radius:999px;font-weight:700;font-size:.95rem;font-family:inherit;white-space:nowrap;background:transparent;border:none;cursor:pointer;transition:transform .2s var(--ease),background .2s var(--ease)}
+.btn:active{transform:scale(.97)}
+.btn-solid{background:var(--accent-gradient);color:#fff}
+.btn-solid:hover{filter:brightness(1.1)}
+.btn-outline{border:1px solid rgba(255,255,255,.18);color:var(--ink)}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+
+.footer{max-width:1280px;margin:0 auto;padding:30px 40px;border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;font-size:.85rem;color:var(--ink-dim)}
+
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+
+@media (max-width:900px){
+  .hero,.section,.nav,.footer{padding-left:20px;padding-right:20px}
+  .hero-icon{width:40px;height:40px}
+  .spotlight{grid-template-columns:1fr}
+  .library{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<canvas id="curtainCanvas" class="curtain-canvas" aria-hidden="true" data-dark1="#0b0a13" data-dark2="#160e22" data-accent="#ec4899" data-accent2="#a855f7"></canvas>
+<div class="bg-vignette"></div>
+<div class="rail" aria-hidden="true"><div class="rail-dot" id="railDot"></div></div>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-back"><span class="icon i-arrow-left"></span> Darren Robson</a>
+    <nav class="nav-links" aria-label="Chroma.GG features">
+      <a href="#shift">Shift</a>
+      <a href="#companion">Companion</a>
+      <a href="#crosshair">Crosshair</a>
+      <a href="#performance">Performance</a>
+      <a href="#replay">Replay</a>
+    </nav>
+    <span class="nav-brand"><img src="assets/chroma-icon-64.png" alt="" width="22" height="22"> Chroma.GG</span>
+    <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <nav class="nav-mobile" id="navMobile" aria-label="Mobile">
+    <a href="#shift">ChromaShift</a>
+    <a href="#companion">ChromaCompanion</a>
+    <a href="#crosshair">ChromaCrosshair</a>
+    <a href="#performance">ChromaPerformance</a>
+    <a href="#replay">ChromaReplay</a>
+    <a href="index.html">Back to portfolio</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="reveal">
+    <div class="badges">
+      <span class="badge badge-solid">In Development</span>
+      <span class="badge badge-outline">Windows · NVIDIA</span>
+    </div>
+    <h1 class="hero-title"><img src="assets/chroma-icon-128.png" alt="" width="56" height="56" class="hero-icon">Chroma<em>.GG</em></h1>
+    <p class="hero-sub">A Windows tray app that automatically applies per-game display tuning and adds a suite of companion gaming utilities, all running quietly in the background and switching the instant you alt-tab into a game.</p>
+    <p class="hero-meta">codebase: <span>ChromaShift</span> · .NET 8 · WPF · x64</p>
+  </div>
+</section>
+
+<section class="section" id="shift">
+  <div class="section-head"><span class="dash"></span><h2>ChromaShift</h2></div>
+  <div class="spotlight reveal">
+    <div class="icon-wrap"><span class="icon i-monitor"></span></div>
+    <div>
+      <h3>Automatic per-game display profiles</h3>
+      <p>Detects the focused window in real time and applies a saved Gamma / Contrast / Brightness / Digital Vibrance profile the moment you switch into a game, reverting the instant you switch out. Built directly on NVAPI (nvapi64.dll), so changes apply at the display-output level, not through a software overlay.</p>
+      <ul>
+        <li>Profiles are per-game, hotkey-switchable, and lockable.</li>
+        <li>A global-hotkey "Quick Adjust" HUD lets you live-tune sliders and cycle profiles without leaving the game.</li>
+        <li>Focus tracking runs on <code style="color:var(--accent);font-family:monospace">SetWinEventHook</code>, not polling, so it's instant and idle-cost-free.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="ba-slider reveal" data-ba>
+    <div class="ba-frame" data-ba-frame>
+      <img src="assets/chroma/office-after.jpg" alt="Office, with a Chroma.GG display profile applied" class="ba-img">
+      <div class="ba-before-wrap" data-ba-wrap>
+        <img src="assets/chroma/office-before.jpg" alt="Office, default display, no profile applied" class="ba-img">
+      </div>
+      <span class="ba-label ba-label-before">Before</span>
+      <span class="ba-label ba-label-after">After</span>
+      <div class="ba-handle" data-ba-handle>
+        <span class="ba-handle-grip">
+          <span class="icon i-arrow-left"></span>
+          <span class="icon i-arrow-left ba-flip"></span>
+        </span>
+      </div>
+    </div>
+    <input type="range" min="0" max="100" value="50" class="ba-range" data-ba-range aria-label="Drag to compare default display versus a Chroma.GG profile applied">
+  </div>
+
+  <div class="ba-slider reveal" data-ba>
+    <div class="ba-frame" data-ba-frame>
+      <img src="assets/chroma/val-after.jpg" alt="Sunset district, with a Chroma.GG display profile applied" class="ba-img">
+      <div class="ba-before-wrap" data-ba-wrap>
+        <img src="assets/chroma/val-before.jpg" alt="Sunset district, default display, no profile applied" class="ba-img">
+      </div>
+      <span class="ba-label ba-label-before">Before</span>
+      <span class="ba-label ba-label-after">After</span>
+      <div class="ba-handle" data-ba-handle>
+        <span class="ba-handle-grip">
+          <span class="icon i-arrow-left"></span>
+          <span class="icon i-arrow-left ba-flip"></span>
+        </span>
+      </div>
+    </div>
+    <input type="range" min="0" max="100" value="50" class="ba-range" data-ba-range aria-label="Drag to compare default display versus a Chroma.GG profile applied">
+  </div>
+</section>
+
+<section class="section" id="companion">
+  <div class="section-head"><span class="dash"></span><h2>ChromaCompanion</h2></div>
+  <div class="spotlight reveal">
+    <div class="icon-wrap"><span class="icon i-groups"></span></div>
+    <div>
+      <h3>App groups &amp; library scanning</h3>
+      <p>Launch or close bundles of supporting apps, like Discord or voice comms, alongside a game. Chroma.GG also auto-discovers your installed games via Steam and Epic library scans, plus a general installed-apps index, so there's little manual setup.</p>
+      <ul>
+        <li>Companion app groups launch and close together with a game.</li>
+        <li>Steam and Epic library scans, plus a general installed-apps index.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="demo reveal" id="companionDemo">
+    <span class="demo-label">Try it</span>
+    <div class="demo-main">
+      <div class="demo-main-icon"><span class="icon i-controller"></span></div>
+      <div class="demo-main-info">
+        <h4>Your game</h4>
+        <span class="demo-status" id="demoStatus">Not running</span>
+      </div>
+      <button class="btn btn-solid demo-toggle" id="demoToggle">Launch</button>
+    </div>
+    <div class="demo-apps" id="demoApps">
+      <div class="demo-app" data-ram="210" data-cpu="2">
+        <div class="demo-app-icon"><span class="icon i-lightning"></span></div>
+        <span class="demo-app-name">Blitz.GG</span>
+        <span class="demo-app-status">Idle</span>
+        <span class="demo-app-stats"><span class="stat-ram">0 MB</span><span class="stat-sep">·</span><span class="stat-cpu">0% CPU</span></span>
+      </div>
+      <div class="demo-app" data-ram="480" data-cpu="9">
+        <div class="demo-app-icon"><span class="icon i-broadcast"></span></div>
+        <span class="demo-app-name">OBS Studio</span>
+        <span class="demo-app-status">Idle</span>
+        <span class="demo-app-stats"><span class="stat-ram">0 MB</span><span class="stat-sep">·</span><span class="stat-cpu">0% CPU</span></span>
+      </div>
+      <div class="demo-app" data-ram="260" data-cpu="1">
+        <div class="demo-app-icon"><span class="icon i-spotify"></span></div>
+        <span class="demo-app-name">Spotify</span>
+        <span class="demo-app-status">Idle</span>
+        <span class="demo-app-stats"><span class="stat-ram">0 MB</span><span class="stat-sep">·</span><span class="stat-cpu">0% CPU</span></span>
+      </div>
+    </div>
+
+    <div class="freed-bar" id="freedBar">
+      <div class="freed-bar-head">
+        <span id="freedLabel">Apps active — nothing freed yet</span>
+        <span id="freedValue"></span>
+      </div>
+      <div class="freed-track"><div class="freed-fill" id="freedFill"></div></div>
+    </div>
+
+    <p class="demo-note">This is an illustrative demo of the app-group lifecycle: launch the main app and its bound companions start with it; close it and Chroma.GG closes them too, so nothing keeps eating <strong>CPU</strong>, <strong>RAM</strong> or GPU cycles in the background.</p>
+  </div>
+</section>
+
+<section class="section" id="crosshair">
+  <div class="section-head"><span class="dash"></span><h2>ChromaCrosshair</h2></div>
+  <div class="spotlight reveal">
+    <div class="icon-wrap"><span class="icon i-crosshair"></span></div>
+    <div>
+      <h3>Crosshair overlay</h3>
+      <p>A click-through crosshair overlay, drawn per-profile so each game can keep its own shape and color.</p>
+      <ul>
+        <li>Custom shapes and colors.</li>
+        <li>Click-through, so it never intercepts input.</li>
+        <li>Favorites gallery for quick switching between saved crosshairs.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="cross-demo reveal">
+    <div class="perf-frame" id="crossFrame">
+      <video autoplay loop muted playsinline poster="assets/chroma/perf-poster.jpg">
+        <source src="assets/chroma/perf-loop.mp4" type="video/mp4">
+      </video>
+      <div class="xh-mark" id="xhMark" data-style="dot">
+        <svg class="xh-svg xh-dot" viewBox="0 0 32 32" width="21" height="21">
+          <circle cx="16" cy="16" r="4" fill="#000" fill-opacity=".5"/>
+          <circle cx="16" cy="16" r="3" fill="#fff"/>
+        </svg>
+        <svg class="xh-svg xh-cross" viewBox="0 0 32 32" width="21" height="21">
+          <g stroke="#000" stroke-opacity=".5" stroke-width="4.5" stroke-linecap="round">
+            <line x1="16" y1="4" x2="16" y2="28"/>
+            <line x1="4" y1="16" x2="28" y2="16"/>
+          </g>
+          <g stroke="#fff" stroke-width="2" stroke-linecap="round">
+            <line x1="16" y1="4" x2="16" y2="28"/>
+            <line x1="4" y1="16" x2="28" y2="16"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <div class="cross-controls">
+      <div class="cross-picker" id="crossPicker" role="group" aria-label="Crosshair style">
+        <button type="button" class="cross-swatch active" data-style="dot" aria-label="Dot crosshair" aria-pressed="true">
+          <svg viewBox="0 0 32 32" width="20" height="20">
+            <circle cx="16" cy="16" r="4.5" fill="#fff"/>
+          </svg>
+        </button>
+        <button type="button" class="cross-swatch" data-style="cross" aria-label="Cross crosshair" aria-pressed="false">
+          <svg viewBox="0 0 32 32" width="20" height="20">
+            <g stroke="#fff" stroke-width="2.6" stroke-linecap="round">
+              <line x1="16" y1="4" x2="16" y2="28"/>
+              <line x1="4" y1="16" x2="28" y2="16"/>
+            </g>
+          </svg>
+        </button>
+      </div>
+      <button class="btn btn-outline" id="crossToggle">Show crosshair</button>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="performance">
+  <div class="section-head"><span class="dash"></span><h2>ChromaPerformance</h2></div>
+  <div class="spotlight reveal">
+    <div class="icon-wrap"><span class="icon i-chart"></span></div>
+    <div>
+      <h3>Performance overlay</h3>
+      <p>FPS, frametime and hardware stats pulled from RTSS shared memory, shown in a draggable in-game HUD you can position anywhere on screen.</p>
+      <ul>
+        <li>Live FPS and frametime readout.</li>
+        <li>Hardware stats via RTSS shared memory.</li>
+        <li>Draggable HUD, positioned per your preference.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="perf-demo reveal">
+    <div class="perf-frame" id="perfFrame">
+      <video autoplay loop muted playsinline poster="assets/chroma/perf-poster.jpg">
+        <source src="assets/chroma/perf-loop.mp4" type="video/mp4">
+      </video>
+      <div class="perf-hud visible" id="perfHud">
+        <span class="stat-label">FPS</span> <span class="stat-fps" id="perfFps">—</span>
+        <span class="sep">|</span>
+        <span class="stat-label">CPU</span> <span class="stat-cpu" id="perfCpu">30%</span>
+        <span class="sep">|</span>
+        <span class="stat-label">RAM</span> <span class="stat-ram" id="perfRam">45%</span>
+        <span class="sep">|</span>
+        <span class="stat-label">GPU</span> <span class="stat-gpu" id="perfGpu">80%</span>
+        <span class="sep">|</span>
+        <span class="stat-label">GPU TEMP</span> <span class="stat-temp" id="perfTemp">64°C</span>
+        <span class="sep">|</span>
+        <span class="stat-label">VRAM</span> <span class="stat-vram" id="perfVram">70%</span>
+      </div>
+    </div>
+    <div class="perf-toggle-row">
+      <p class="demo-note" style="margin-top:0">Drag the HUD anywhere on screen, same as in the app.</p>
+      <button class="btn btn-outline" id="perfToggle">Show overlay</button>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="replay">
+  <div class="section-head"><span class="dash"></span><h2>ChromaReplay</h2></div>
+  <div class="spotlight reveal">
+    <div class="icon-wrap"><span class="icon i-video"></span></div>
+    <div>
+      <h3>Instant replay &amp; screenshots</h3>
+      <p>A rolling replay buffer plus one-key clip and screenshot capture, entirely on the GPU: DXGI Desktop Duplication feeds NVENC hardware encoding, with WASAPI loopback audio muxed in via Media Foundation. An optional "match display profile" mode re-applies your color adjustments to captured footage, since NVIDIA's display-level Gamma/Vibrance doesn't otherwise show up in raw captures.</p>
+    </div>
+  </div>
+
+  <div class="replay-demo reveal">
+    <div class="perf-frame" id="replayFrame">
+      <video id="replayVideo" autoplay loop muted playsinline poster="assets/chroma/replay-poster.jpg">
+        <source src="assets/chroma/replay-loop.mp4" type="video/mp4">
+      </video>
+      <div class="replay-keycue" id="replayKeycue">F9</div>
+      <div class="replay-toast" id="replayToast">
+        <span class="replay-toast-icon"><span class="icon i-video"></span></span>
+        <span class="replay-toast-text">
+          <strong>Replay Saved</strong>
+          <span>How To Fish</span>
+        </span>
+      </div>
+    </div>
+    <p class="demo-note">Illustrative: pressing the clip hotkey saves the last few minutes of gameplay instantly, with a quick on-screen confirmation.</p>
+  </div>
+
+  <div class="library reveal">
+    <div>
+      <h3>Everything you capture, in one place</h3>
+      <p>The Library tab lists every recorded clip and screenshot, auto-scanned from the output folder with thumbnails cached for fast browsing, and searchable and filterable by game.</p>
+      <p>The Quick Adjust HUD's gallery surfaces your four most recent clips directly in the overlay, with one click jumping straight to that clip in the Library.</p>
+    </div>
+    <ul class="library-feats">
+      <li><span class="icon i-play"></span><span><strong>Embedded playback</strong><span>Built on FlyleafLib, with standard scrubbing, seek, volume controls and a fullscreen mode. No need to open clips in an external player.</span></span></li>
+      <li><span class="icon i-scissors"></span><span><strong>Trim &amp; export</strong><span>ClipTrimmer lets you cut a clip down before sharing it.</span></span></li>
+      <li><span class="icon i-palette"></span><span><strong>7 built-in themes</strong><span>A fully re-skinnable UI across the whole app.</span></span></li>
+    </ul>
+  </div>
+
+  <div class="gallery reveal">
+    <h3 class="gallery-head">See it in the app</h3>
+    <div class="gallery-grid">
+      <div class="gallery-shot gallery-shot-app">
+        <img src="assets/chroma/app-library.png" alt="Chroma.GG clip library, browsing saved recordings">
+      </div>
+      <div class="gallery-shot gallery-shot-player">
+        <img src="assets/chroma/app-player.png" alt="Chroma.GG media player, trimming a How to Fish clip">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="stack">
+  <div class="section-head"><span class="dash"></span><h2>Tech stack</h2></div>
+  <div class="reveal">
+    <div class="stack-grid">
+      <span class="stack-pill"><span class="icon i-controller"></span>.NET 8 / WPF</span>
+      <span class="stack-pill"><span class="icon i-cpu"></span>NVAPI (nvapi64.dll)</span>
+      <span class="stack-pill"><span class="icon i-lightning"></span>Event-driven, no polling</span>
+      <span class="stack-pill"><span class="icon i-video"></span>DXGI + NVENC (H.264)</span>
+      <span class="stack-pill"><span class="icon i-monitor"></span>Windows 10/11, NVIDIA GPU</span>
+    </div>
+    <div class="stack-note">
+      <h3>Architecture notes</h3>
+      <p>Code-behind architecture, no MVVM framework. x64-only, since NVAPI ships only as a 64-bit DLL. Focus tracking runs on <code>SetWinEventHook</code>, hotkeys on raw Win32, and theme reloads on <code>FileSystemWatcher</code>, keeping the whole app event-driven rather than polling in a loop. Capture pipeline: DXGI Desktop Duplication into NVENC hardware encoding, muxed with WASAPI loopback audio via Media Foundation.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="cta reveal">
+    <h2>Want to know more?</h2>
+    <p>Chroma.GG is actively in development. Reach out if you'd like a walkthrough, early access, or to talk through how it's built.</p>
+    <a href="index.html#contact" class="btn btn-solid">Get in touch</a>
+  </div>
+</section>
+
+<footer class="footer">
+  <span>© 2026 Darren Robson</span>
+  <a href="index.html" style="color:var(--accent)">← Back to portfolio</a>
+</footer>
+
+<script src="shader-curtain.js"></script>
+<script>
+document.querySelectorAll('[data-ba]').forEach(function(slider){
+  var frame=slider.querySelector('[data-ba-frame]');
+  var handle=slider.querySelector('[data-ba-handle]');
+  var range=slider.querySelector('[data-ba-range]');
+  if(!frame||!handle||!range) return;
+
+  function setSplit(pct){
+    pct=Math.max(0,Math.min(100,pct));
+    frame.style.setProperty('--split',pct+'%');
+    handle.style.setProperty('--split',pct+'%');
+    range.value=pct;
+  }
+
+  range.addEventListener('input',function(){ setSplit(parseFloat(range.value)); });
+
+  var dragging=false;
+  function pctFromClientX(clientX){
+    var rect=frame.getBoundingClientRect();
+    return ((clientX-rect.left)/rect.width)*100;
+  }
+  frame.addEventListener('pointerdown',function(e){
+    dragging=true;
+    frame.setPointerCapture(e.pointerId);
+    setSplit(pctFromClientX(e.clientX));
+  });
+  frame.addEventListener('pointermove',function(e){
+    if(!dragging) return;
+    setSplit(pctFromClientX(e.clientX));
+  });
+  frame.addEventListener('pointerup',function(){ dragging=false; });
+  frame.addEventListener('pointercancel',function(){ dragging=false; });
+
+  setSplit(50);
+});
+
+(function(){
+  var demo=document.getElementById('companionDemo');
+  if(!demo) return;
+  var toggle=document.getElementById('demoToggle');
+  var status=document.getElementById('demoStatus');
+  var appCards=demo.querySelectorAll('.demo-app');
+  var freedLabel=document.getElementById('freedLabel');
+  var freedValue=document.getElementById('freedValue');
+  var freedFill=document.getElementById('freedFill');
+  var running=false;
+  var hasRun=false;
+
+  var totalRam=0, totalCpu=0;
+  appCards.forEach(function(card){
+    totalRam+=parseInt(card.dataset.ram,10)||0;
+    totalCpu+=parseInt(card.dataset.cpu,10)||0;
+  });
+
+  function render(){
+    demo.classList.toggle('running',running);
+    status.textContent=running?'Running':'Not running';
+    toggle.textContent=running?'Close':'Launch';
+
+    appCards.forEach(function(card){
+      var ram=running?(parseInt(card.dataset.ram,10)||0):0;
+      var cpu=running?(parseInt(card.dataset.cpu,10)||0):0;
+      card.querySelector('.demo-app-status').textContent=running?'Running':'Idle';
+      card.querySelector('.stat-ram').textContent=ram+' MB';
+      card.querySelector('.stat-cpu').textContent=cpu+'% CPU';
+    });
+
+    if(running){
+      freedLabel.textContent='Apps active — nothing freed yet';
+      freedValue.textContent='';
+      freedFill.style.width='0%';
+    }else if(hasRun){
+      freedLabel.textContent='Freed on close';
+      freedValue.textContent=totalRam+' MB · '+totalCpu+'% CPU';
+      freedFill.style.width='100%';
+    }else{
+      freedLabel.textContent='Launch, then close, to see resources freed';
+      freedValue.textContent='';
+      freedFill.style.width='0%';
+    }
+  }
+
+  toggle.addEventListener('click',function(){
+    running=!running;
+    if(running) hasRun=true;
+    render();
+  });
+
+  render();
+})();
+
+(function(){
+  var hud=document.getElementById('perfHud');
+  var frame=document.getElementById('perfFrame');
+  var toggle=document.getElementById('perfToggle');
+  if(!hud||!frame||!toggle) return;
+
+  var visible=true;
+  toggle.textContent='Hide overlay';
+  var reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  toggle.addEventListener('click',function(){
+    visible=!visible;
+    hud.classList.toggle('visible',visible);
+    toggle.textContent=visible?'Hide overlay':'Show overlay';
+  });
+
+  // Live-ticking stats: small randomized jitter around a baseline, purely illustrative.
+  var els={
+    fps:document.getElementById('perfFps'),
+    cpu:document.getElementById('perfCpu'),
+    ram:document.getElementById('perfRam'),
+    gpu:document.getElementById('perfGpu'),
+    temp:document.getElementById('perfTemp'),
+    vram:document.getElementById('perfVram')
+  };
+  // Random-walk each stat instead of independent jitter, so values drift the
+  // way a real system does (correlated frame to frame) rather than jumping.
+  // step = how much it can move per tick, min/max = realistic bounds for an
+  // active gaming session, decimals = precision before rounding for display.
+  var walk={
+    fps:  {v:132, step:6,   min:95,  max:165, decimals:0},
+    cpu:  {v:30,  step:2.5, min:20,  max:52,  decimals:0},
+    ram:  {v:45,  step:0.3, min:41,  max:50,  decimals:0},
+    gpu:  {v:80,  step:3,   min:68,  max:94,  decimals:0},
+    temp: {v:64,  step:0.6, min:58,  max:74,  decimals:0},
+    vram: {v:70,  step:0.4, min:65,  max:75,  decimals:0}
+  };
+  function stepWalk(w){
+    w.v += (Math.random()-0.5)*2*w.step;
+    if(Math.random()<0.06) w.v += (Math.random()-0.5)*w.step*4; // occasional bigger swing (e.g. a frame dip, a scene change)
+    w.v=Math.max(w.min,Math.min(w.max,w.v));
+    return Math.round(w.v);
+  }
+  function tick(){
+    els.fps.textContent=stepWalk(walk.fps);
+    els.cpu.textContent=stepWalk(walk.cpu)+'%';
+    els.ram.textContent=stepWalk(walk.ram)+'%';
+    els.gpu.textContent=stepWalk(walk.gpu)+'%';
+    els.temp.textContent=stepWalk(walk.temp)+'°C';
+    els.vram.textContent=stepWalk(walk.vram)+'%';
+  }
+  if(!reduceMotion){
+    tick();
+    setInterval(tick,900);
+  }
+
+  // Drag anywhere within the frame.
+  var dragging=false, offX=0, offY=0;
+  hud.addEventListener('pointerdown',function(e){
+    dragging=true;
+    hud.classList.add('dragging');
+    hud.setPointerCapture(e.pointerId);
+    var r=hud.getBoundingClientRect();
+    offX=e.clientX-r.left;
+    offY=e.clientY-r.top;
+  });
+  hud.addEventListener('pointermove',function(e){
+    if(!dragging) return;
+    var fr=frame.getBoundingClientRect();
+    var x=e.clientX-fr.left-offX;
+    var y=e.clientY-fr.top-offY;
+    x=Math.max(6,Math.min(x,fr.width-hud.offsetWidth-6));
+    y=Math.max(6,Math.min(y,fr.height-hud.offsetHeight-6));
+    hud.style.left=x+'px';
+    hud.style.top=y+'px';
+  });
+  function stopDrag(){ dragging=false; hud.classList.remove('dragging'); }
+  hud.addEventListener('pointerup',stopDrag);
+  hud.addEventListener('pointercancel',stopDrag);
+})();
+
+(function(){
+  var mark=document.getElementById('xhMark');
+  var toggle=document.getElementById('crossToggle');
+  var picker=document.getElementById('crossPicker');
+  if(!mark||!toggle||!picker) return;
+
+  var visible=false;
+  toggle.addEventListener('click',function(){
+    visible=!visible;
+    mark.classList.toggle('visible',visible);
+    toggle.textContent=visible?'Hide crosshair':'Show crosshair';
+  });
+
+  picker.querySelectorAll('.cross-swatch').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      picker.querySelectorAll('.cross-swatch').forEach(function(b){
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed','false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed','true');
+      mark.dataset.style=btn.dataset.style;
+    });
+  });
+})();
+
+(function(){
+  var video=document.getElementById('replayVideo');
+  var keycue=document.getElementById('replayKeycue');
+  var toast=document.getElementById('replayToast');
+  if(!video||!keycue||!toast) return;
+
+  var triggered=false;
+  var hideTimer=null;
+
+  function showSequence(){
+    keycue.classList.add('visible');
+    setTimeout(function(){
+      keycue.classList.remove('visible');
+      toast.classList.add('visible');
+    },550);
+    hideTimer=setTimeout(function(){
+      toast.classList.remove('visible');
+    },3400);
+  }
+
+  video.addEventListener('timeupdate',function(){
+    if(!video.duration) return;
+    var remain=video.duration-video.currentTime;
+    if(remain<3.2 && !triggered){
+      triggered=true;
+      showSequence();
+    }
+    if(video.currentTime<0.5 && triggered){
+      triggered=false;
+      keycue.classList.remove('visible');
+      toast.classList.remove('visible');
+      if(hideTimer) clearTimeout(hideTimer);
+    }
+  });
+})();
+
+var navToggle=document.getElementById('navToggle');
+var navMobile=document.getElementById('navMobile');
+if(navToggle && navMobile){
+  navToggle.addEventListener('click',function(){
+    var open=navMobile.classList.toggle('open');
+    navToggle.classList.toggle('open',open);
+    navToggle.setAttribute('aria-expanded',String(open));
+  });
+  navMobile.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click',function(){
+      navMobile.classList.remove('open');
+      navToggle.classList.remove('open');
+      navToggle.setAttribute('aria-expanded','false');
+    });
+  });
+}
+
+var railDot=document.getElementById('railDot');
+function raf(){
+  var h=document.documentElement;
+  var pct=h.scrollTop/(h.scrollHeight-h.clientHeight||1);
+  if(railDot) railDot.style.transform='translateY('+(pct*94)+'px)';
+  requestAnimationFrame(raf);
+}
+if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches) requestAnimationFrame(raf);
+
+var items=document.querySelectorAll('.reveal');
+if('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
+  items.forEach(function(el){io.observe(el)});
+}else{
+  items.forEach(function(el){el.classList.add('in')});
+}
+</script>
+</body>
+</html>
