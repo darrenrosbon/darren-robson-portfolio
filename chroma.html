@@ -134,6 +134,14 @@ button{font-family:inherit}
 .brand img{filter:drop-shadow(0 0 8px rgba(236,72,153,.45))}
 .brand b{font-weight:700}
 .brand em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+/* wordmark's fade-edged underline, in both the nav and the footer.
+   left offset clears each context's own icon width (24px nav / 20px footer) + the 10px gap. */
+.nav .brand,.foot .brand{position:relative}
+.nav .brand::after,.foot .brand::after{content:"";position:absolute;right:0;bottom:-6px;height:1.5px;background:var(--grad);
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent)}
+.nav .brand::after{left:34px}
+.foot .brand::after{left:30px}
 .nav-links{display:flex;gap:4px}
 .nav-links a{padding:8px 13px;border-radius:9px;font-size:13.5px;font-weight:500;color:var(--dim);transition:color .2s,background .2s}
 .nav-links a:hover{color:var(--ink);background:rgba(255,255,255,.05)}
@@ -192,7 +200,11 @@ h1.hero-t span{background:linear-gradient(100deg,var(--a1),var(--a2) 55%,#fbbf24
 .mc-mark{position:relative;display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:700;letter-spacing:-.01em;flex-shrink:0}
 .mc-mark img{width:14px;height:14px}
 .mc-mark em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.mc-mark::after{content:"";position:absolute;left:19px;right:0;bottom:-4px;height:1.5px;background:var(--grad);border-radius:2px}
+/* fades at both ends rather than a flat bar, matching the app's own
+   wordmark underline (Screenshots, 2026-09-10) */
+.mc-mark::after{content:"";position:absolute;left:19px;right:0;bottom:-4px;height:1.5px;background:var(--grad);
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent)}
 .mc-sub{font-size:8.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--dimmer);white-space:nowrap}
 .mc-x{margin-left:auto;font-size:12px;color:var(--a2);opacity:.85;line-height:1}
 .mc-lab{font-size:8px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--dimmer);margin:0 0 7px}
@@ -384,7 +396,9 @@ h1.hero-t span{background:linear-gradient(100deg,var(--a1),var(--a2) 55%,#fbbf24
 .tp-mark{display:inline-flex;align-items:center;gap:7px;font-size:.95rem;font-weight:700;position:relative}
 .tp-mark img{width:17px;height:17px}
 .tp-mark em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.tp-mark::after{content:"";position:absolute;left:24px;right:0;bottom:-5px;height:2px;background:var(--grad);border-radius:2px}
+.tp-mark::after{content:"";position:absolute;left:24px;right:0;bottom:-5px;height:2px;background:var(--grad);
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent)}
 .tp-bar .i{margin-left:auto;color:var(--dimmer);font-size:15px}
 .tp-tabs{display:flex;justify-content:space-between;gap:10px;margin-bottom:22px;font-size:10.2px;letter-spacing:-.01em;font-weight:600;color:var(--dimmer);white-space:nowrap}
 .tp-tabs span:first-child{color:var(--a2);position:relative}
@@ -530,7 +544,7 @@ h1.hero-t span{background:linear-gradient(100deg,var(--a1),var(--a2) 55%,#fbbf24
 
 <header class="nav" id="nav">
   <div class="nav-in">
-    <a href="#top" class="brand"><img src="assets/chroma-icon-64.png" alt="" width="24" height="24"> <b>Chroma</b><em>.GG</em></a>
+    <a href="#top" class="brand"><img src="assets/chroma-icon-64.png" alt="" width="24" height="24"><span><b>Chroma</b><em>.GG</em></span></a>
     <nav class="nav-links">
       <a href="#tour">Features</a>
       <a href="#compare">See it</a>
@@ -583,7 +597,7 @@ h1.hero-t span{background:linear-gradient(100deg,var(--a1),var(--a2) 55%,#fbbf24
         <!-- Mission Control panel -->
         <aside class="mc" aria-label="Mission Control overlay preview">
           <div class="mc-top">
-            <span class="mc-mark"><img src="assets/chroma-icon-64.png" alt="">Chroma<em>.GG</em></span>
+            <span class="mc-mark"><img src="assets/chroma-icon-64.png" alt=""><span>Chroma<em>.GG</em></span></span>
             <span class="mc-sub">· Mission Control</span>
             <span class="mc-x">✕</span>
           </div>
@@ -958,7 +972,7 @@ h1.hero-t span{background:linear-gradient(100deg,var(--a1),var(--a2) 55%,#fbbf24
       </div>
       <div class="theme-prev rv">
         <div class="tp-bar">
-          <span class="tp-mark"><img src="assets/chroma-icon-64.png" alt="">Chroma<em>.GG</em></span>
+          <span class="tp-mark"><img src="assets/chroma-icon-64.png" alt=""><span>Chroma<em>.GG</em></span></span>
           <span class="i i-gear"></span>
         </div>
         <div class="tp-tabs"><span>ChromaShift</span><span>ChromaCompanion</span><span>ChromaCrosshair</span><span>ChromaPerformance</span><span>ChromaReplay</span></div>
@@ -1115,8 +1129,8 @@ h1.hero-t span{background:linear-gradient(100deg,var(--a1),var(--a2) 55%,#fbbf24
   <div class="wrap">
     <div class="foot-cols">
       <div>
-        <span class="brand" style="margin:0"><img src="assets/chroma-icon-64.png" alt="" width="20" height="20"> <b>Chroma</b><em>.GG</em></span>
-        <p class="foot-blurb">A Windows tray app for per-game display tuning, overlays and instant replay. Built by one developer, in the open.</p>
+        <span class="brand" style="margin:0"><img src="assets/chroma-icon-64.png" alt="" width="20" height="20"><span><b>Chroma</b><em>.GG</em></span></span>
+        <p class="foot-blurb">A Windows tray app for per-game display tuning, overlays and instant replay. Built by one developer, start to finish.</p>
       </div>
       <div>
         <h5>The app</h5>
