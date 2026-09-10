@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chroma.GG · Live demo</title>
+<meta name="description" content="A working Mission Control overlay, in your browser. Drag the ChromaShift sliders, switch crosshair shapes, same behaviour as the real app.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/chroma-favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="assets/chroma-favicon-16.png" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="assets/chroma-favicon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --a1:#a855f7; --a2:#ec4899;
+  --grad:linear-gradient(100deg,var(--a1),var(--a2));
+  --bg:#07060d; --bg2:#0d0a17;
+  --ink:#f6f3fb; --dim:#9d92b5; --dimmer:#6f6685;
+  --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.055);
+  --glass:rgba(255,255,255,.035);
+  --r:18px; --r-lg:26px;
+  --e:cubic-bezier(.16,1,.3,1);
+  --f:'Space Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --m:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --w:1240px;
+}
+*{box-sizing:border-box}
+html,body{overflow-x:clip}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);line-height:1.6;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+h1,h2,h3{margin:0;letter-spacing:-.025em;line-height:1.08;font-weight:700}
+p{margin:0;color:var(--dim)}
+a{color:inherit;text-decoration:none}
+img,video{max-width:100%;display:block}
+button{font-family:inherit}
+::selection{background:var(--a2);color:#fff}
+:focus-visible{outline:2px solid var(--a2);outline-offset:3px;border-radius:6px}
+
+::-webkit-scrollbar{width:12px;height:12px}
+::-webkit-scrollbar-track{background:rgba(255,255,255,.03);border-left:1px solid rgba(255,255,255,.05)}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--a1),var(--a2));border:3px solid var(--bg);background-clip:padding-box;border-radius:999px;transition:filter .2s}
+::-webkit-scrollbar-thumb:hover{filter:brightness(1.2) saturate(1.1)}
+::-webkit-scrollbar-corner{background:transparent}
+@supports not selector(::-webkit-scrollbar-thumb){
+  html{scrollbar-width:thin;scrollbar-color:var(--a2) rgba(255,255,255,.05)}
+}
+
+/* ---------- ambient background ---------- */
+.bg{position:fixed;inset:0;z-index:-4;background:
+  radial-gradient(900px 620px at 12% -8%, rgba(168,85,247,.30), transparent 62%),
+  radial-gradient(760px 540px at 92% 4%, rgba(236,72,153,.22), transparent 60%),
+  radial-gradient(1000px 700px at 50% 108%, rgba(120,60,190,.18), transparent 60%),
+  linear-gradient(180deg,var(--bg),var(--bg2) 45%,var(--bg));}
+#bgShader{position:fixed;inset:0;z-index:-3;width:100%;height:100%;pointer-events:none;opacity:.6}
+.bg-grid{position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.4;
+  background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+  background-size:64px 64px;
+  -webkit-mask-image:radial-gradient(ellipse 90% 60% at 50% 0%,#000 15%,transparent 75%);
+  mask-image:radial-gradient(ellipse 90% 60% at 50% 0%,#000 15%,transparent 75%)}
+.bg-noise{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* ---------- icons ---------- */
+.i{display:inline-block;width:1em;height:1em;background-color:currentColor;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;flex-shrink:0;vertical-align:-.12em}
+.i-monitor{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/monitor.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/monitor.svg)}
+.i-arrow{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/arrow-right.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/arrow-right.svg)}
+.i-arrow-l{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/arrow-left.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/arrow-left.svg)}
+.i-steam{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/simple-icons@16.30.0/icons/steam.svg);mask-image:url(https://cdn.jsdelivr.net/npm/simple-icons@16.30.0/icons/steam.svg)}
+.i-reset{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/arrow-counter-clockwise.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/arrow-counter-clockwise.svg)}
+
+/* ---------- layout ---------- */
+.wrap{max-width:var(--w);margin:0 auto;padding:0 32px;width:100%}
+.brand{display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:1.02rem;letter-spacing:-.01em;position:relative}
+.brand img{filter:drop-shadow(0 0 8px rgba(236,72,153,.45))}
+.brand b{font-weight:700}
+.brand em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand::after{content:"";position:absolute;left:32px;right:0;bottom:-6px;height:1.5px;background:var(--grad);
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent)}
+
+.dnav{padding:26px 0}
+.dnav-in{display:flex;align-items:center;justify-content:space-between;gap:20px}
+.back-link{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:500;color:var(--dim);transition:color .2s}
+.back-link:hover{color:var(--ink)}
+.back-link .i{font-size:13px}
+
+.intro{padding:34px 0 44px;text-align:center}
+.intro .eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:11.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--a2);margin-bottom:16px}
+.intro .eyebrow::before{content:"";width:22px;height:1.5px;background:var(--grad);border-radius:2px}
+.intro h1{font-size:clamp(1.9rem,4vw,2.7rem);max-width:22ch;margin:0 auto 14px}
+.intro p{font-size:1.02rem;max-width:46ch;margin:0 auto}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 25px;border-radius:999px;font-weight:600;font-size:.94rem;border:none;cursor:pointer;transition:transform .18s var(--e),filter .2s,background .2s,box-shadow .3s;white-space:nowrap;background:none;color:var(--ink)}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--grad);color:#fff;box-shadow:0 6px 26px -6px rgba(236,72,153,.6)}
+.btn-g{box-shadow:inset 0 0 0 1px var(--line);background:rgba(255,255,255,.03)}
+.btn-g:hover{background:rgba(255,255,255,.06)}
+.btn-sm{padding:9px 17px;font-size:.85rem}
+.btn-static{cursor:default}
+.btn-static:active{transform:none}
+
+/* ---------- stage ---------- */
+.demo-wrap{padding:0 0 90px}
+.demo-stage{position:relative;max-width:820px;margin:0 auto}
+.glow{position:absolute;inset:-14%;z-index:-1;background:radial-gradient(circle at 60% 45%,rgba(168,85,247,.4),transparent 62%);filter:blur(52px);pointer-events:none}
+.stage{position:relative;border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--line);background:#05040a;box-shadow:0 34px 80px -22px rgba(0,0,0,.85);aspect-ratio:16/9}
+.stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.stage video.easing{transition:filter .35s var(--e)}
+.bright-overlay{position:absolute;inset:0;mix-blend-mode:overlay;pointer-events:none;opacity:0;transition:opacity .12s,background .12s}
+
+/* ---------- crosshair ---------- */
+.xh{position:absolute;top:50%;left:50%;width:22px;height:22px;transform:translate(-50%,-50%);opacity:0;transition:opacity .2s;pointer-events:none;z-index:4}
+.xh.on{opacity:1}
+.xh svg{display:none;position:absolute;inset:0}
+.xh[data-s="dot"] .s-dot,.xh[data-s="cross"] .s-cross,.xh[data-s="tdot"] .s-tdot{display:block}
+
+/* ---------- mission control toggle + panel ---------- */
+.mc-toggle{position:absolute;top:18px;left:18px;z-index:5;display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(10,8,17,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:var(--ink);font-size:12.5px;font-weight:600;cursor:pointer;transition:transform .2s var(--e),border-color .2s;box-shadow:0 10px 30px -10px rgba(0,0,0,.6)}
+.mc-toggle:hover{border-color:rgba(255,255,255,.3);transform:translateY(-1px)}
+.mc-toggle .i{font-size:14px;color:var(--a2)}
+.mc-toggle kbd{margin-left:2px;font-family:var(--m);font-size:9px;color:var(--dimmer);border:1px solid var(--line);border-radius:4px;padding:2px 5px}
+[hidden]{display:none!important}
+
+.mc{position:absolute;right:20px;top:20px;width:248px;border-radius:16px;padding:14px;z-index:5;
+  background:linear-gradient(180deg,#171021,#0e0a17);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 34px 80px -14px rgba(0,0,0,.92),0 0 46px -14px rgba(168,85,247,.45)}
+.mc-top{display:flex;align-items:center;gap:7px;margin-bottom:14px}
+.mc-mark{position:relative;display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:700;letter-spacing:-.01em;flex-shrink:0}
+.mc-mark img{width:14px;height:14px}
+.mc-mark em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.mc-mark::after{content:"";position:absolute;left:19px;right:0;bottom:-4px;height:1.5px;background:var(--grad);
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent)}
+.mc-sub{font-size:8.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--dimmer);white-space:nowrap}
+.mc-x{margin-left:auto;font-size:12px;color:var(--a2);opacity:.85;line-height:1;cursor:pointer;padding:2px}
+.mc-lab{font-size:8px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--dimmer);margin:0 0 7px}
+.mc-prof{display:flex;align-items:center;gap:6px;margin-bottom:11px;font-size:10.5px;font-weight:700}
+.mc-prof .i{font-size:10px;color:var(--dim);cursor:pointer;padding:4px;border-radius:6px;transition:color .15s,background .15s}
+.mc-prof .i:hover{color:var(--ink);background:rgba(255,255,255,.06)}
+.mc-prof b{flex:1;text-align:center;font-weight:700}
+.mc-row{margin-bottom:9px}
+.mc-row-t{display:flex;justify-content:space-between;align-items:baseline;font-size:9.5px;margin-bottom:5px}
+.mc-row-t b{color:var(--ink);font-weight:600}
+.mc-row-t span{font-family:var(--m);color:var(--dim);font-size:9px}
+.mc-track{height:3px;border-radius:2px;background:rgba(255,255,255,.11);position:relative;cursor:pointer;padding:9px 0;margin:-9px 0;background-clip:content-box}
+.mc-fill{height:3px;border-radius:2px;background:var(--grad);position:absolute;top:9px;left:0;pointer-events:none}
+.mc-knob{position:absolute;top:9px;width:11px;height:11px;border-radius:50%;background:var(--a2);transform:translate(-50%,-50%);box-shadow:0 0 0 2px #100b1a,0 0 8px rgba(236,72,153,.8);pointer-events:none}
+.mc-tog{display:flex;align-items:center;gap:8px;margin-bottom:9px;font-size:9.5px;color:var(--dim);cursor:pointer;user-select:none}
+.mc-sw{width:20px;height:11px;border-radius:999px;background:rgba(255,255,255,.14);position:relative;flex-shrink:0;transition:background .18s}
+.mc-sw::after{content:"";position:absolute;top:2px;left:2px;width:7px;height:7px;border-radius:50%;background:var(--dimmer);transition:left .18s,background .18s}
+.mc-sw.on{background:rgba(236,72,153,.4)}
+.mc-sw.on::after{left:11px;background:var(--a2)}
+.mc-favs{display:flex;gap:6px;margin-bottom:13px}
+.mc-fav{width:30px;height:30px;border-radius:7px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s,background .15s;padding:0}
+.mc-fav:hover{border-color:rgba(255,255,255,.25)}
+.mc-fav.on{border-color:var(--a2);background:rgba(236,72,153,.14)}
+.mc-note{margin-top:2px;padding-top:10px;border-top:1px solid rgba(255,255,255,.07);font-size:8.4px;line-height:1.5;color:var(--dimmer)}
+.mc-reset{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:12px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);color:var(--dim);font-size:9.5px;font-weight:600;letter-spacing:.02em;cursor:pointer;transition:color .15s,border-color .15s,background .15s}
+.mc-reset:hover{color:var(--ink);border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.06)}
+.mc-reset .i{font-size:11px}
+
+/* ---------- footer ---------- */
+.dfoot{padding:0 0 70px;text-align:center}
+.dfoot p{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;font-size:.92rem}
+
+@media (max-width:820px){
+  .wrap{padding:0 20px}
+  .mc-toggle kbd{display:none}
+}
+@media (max-width:600px){
+  .mc{position:relative;right:auto;top:auto;width:100%;max-width:300px;margin:16px auto 0}
+  .mc-toggle{position:static;margin:16px auto 0;width:max-content}
+  .demo-stage{display:flex;flex-direction:column;align-items:center}
+}
+</style>
+</head>
+<body>
+<div class="bg"></div><canvas id="bgShader" aria-hidden="true"></canvas><div class="bg-grid"></div><div class="bg-noise"></div>
+
+<header class="dnav">
+  <div class="wrap dnav-in">
+    <a href="chroma.html" class="brand"><img src="assets/chroma-icon-64.png" alt="" width="22" height="22"><span><b>Chroma</b><em>.GG</em></span></a>
+    <a href="chroma.html" class="back-link"><span class="i i-arrow-l"></span>Back to overview</a>
+  </div>
+</header>
+
+<section class="intro wrap">
+  <span class="eyebrow">Live demo</span>
+  <h1>This is the real overlay's UX, running in your browser.</h1>
+  <p>Open Mission Control, drag the ChromaShift sliders and switch the crosshair. This video stands in for a live game, but every control behaves exactly as it would over one.</p>
+</section>
+
+<section class="demo-wrap wrap">
+  <div class="demo-stage">
+    <div class="glow"></div>
+    <div class="stage" id="videoStage">
+      <video autoplay loop muted playsinline poster="assets/chroma/perf-poster.jpg" id="demoVideo"><source src="assets/chroma/perf-loop.mp4" type="video/mp4"></video>
+      <div class="bright-overlay" id="brightOverlay"></div>
+      <div class="xh on" id="xh" data-s="dot">
+        <svg class="s-dot" viewBox="0 0 32 32" width="22" height="22"><circle cx="16" cy="16" r="4.4" fill="#000" fill-opacity=".5"/><circle cx="16" cy="16" r="3" fill="#fff"/></svg>
+        <svg class="s-cross" viewBox="0 0 32 32" width="22" height="22"><g stroke="#000" stroke-opacity=".5" stroke-width="4.6" stroke-linecap="round"><line x1="16" y1="4" x2="16" y2="28"/><line x1="4" y1="16" x2="28" y2="16"/></g><g stroke="#fff" stroke-width="2" stroke-linecap="round"><line x1="16" y1="4" x2="16" y2="28"/><line x1="4" y1="16" x2="28" y2="16"/></g></svg>
+        <svg class="s-tdot" viewBox="0 0 32 32" width="22" height="22"><g stroke="#000" stroke-opacity=".5" stroke-width="4.6" stroke-linecap="round"><line x1="16" y1="3" x2="16" y2="10"/><line x1="3" y1="16" x2="10" y2="16"/><line x1="22" y1="16" x2="29" y2="16"/><line x1="16" y1="22" x2="16" y2="29"/></g><g stroke="#fff" stroke-width="2" stroke-linecap="round"><line x1="16" y1="3" x2="16" y2="10"/><line x1="3" y1="16" x2="10" y2="16"/><line x1="22" y1="16" x2="29" y2="16"/><line x1="16" y1="22" x2="16" y2="29"/></g></svg>
+      </div>
+    </div>
+
+    <button class="mc-toggle" id="mcToggle" aria-expanded="false"><span class="i i-monitor"></span>Mission Control<kbd>click to open</kbd></button>
+
+    <aside class="mc" id="mc" aria-label="Mission Control overlay" hidden>
+      <div class="mc-top">
+        <span class="mc-mark"><img src="assets/chroma-icon-64.png" alt=""><span>Chroma<em>.GG</em></span></span>
+        <span class="mc-sub">· Mission Control</span>
+        <span class="mc-x" id="mcClose" role="button" tabindex="0" aria-label="Close">✕</span>
+      </div>
+
+      <p class="mc-lab">ChromaShift</p>
+      <div class="mc-prof">
+        <span class="i i-arrow-l" id="profPrev" role="button" tabindex="0" aria-label="Previous profile"></span>
+        <b id="profName">Desktop (default)</b>
+        <span class="i i-arrow" id="profNext" role="button" tabindex="0" aria-label="Next profile"></span>
+      </div>
+      <div class="mc-row" data-slider="gamma">
+        <div class="mc-row-t"><b>Gamma</b><span>1,00</span></div>
+        <div class="mc-track"><div class="mc-fill" style="width:28%"></div><div class="mc-knob" style="left:28%"></div></div>
+      </div>
+      <div class="mc-row" data-slider="contrast">
+        <div class="mc-row-t"><b>Contrast</b><span>50</span></div>
+        <div class="mc-track"><div class="mc-fill" style="width:50%"></div><div class="mc-knob" style="left:50%"></div></div>
+      </div>
+      <div class="mc-row" data-slider="brightness">
+        <div class="mc-row-t"><b>Brightness</b><span>50</span></div>
+        <div class="mc-track"><div class="mc-fill" style="width:50%"></div><div class="mc-knob" style="left:50%"></div></div>
+      </div>
+      <div class="mc-row" data-slider="vibrance" style="margin-bottom:13px">
+        <div class="mc-row-t"><b>Digital Vibrance</b><span>50</span></div>
+        <div class="mc-track"><div class="mc-fill" style="width:50%"></div><div class="mc-knob" style="left:50%"></div></div>
+      </div>
+
+      <p class="mc-lab">ChromaCrosshair</p>
+      <div class="mc-tog" id="togCross" role="button" tabindex="0"><span class="mc-sw on"></span>Enable crosshair</div>
+      <div class="mc-tog" id="togHide" role="button" tabindex="0" style="margin-bottom:12px"><span class="mc-sw"></span>Hide while right-click held</div>
+      <div class="mc-favs" id="shapeRow">
+        <button class="mc-fav on" data-s="dot" aria-label="Dot"><svg viewBox="0 0 32 32" width="13" height="13"><circle cx="16" cy="16" r="4" fill="#fff"/></svg></button>
+        <button class="mc-fav" data-s="cross" aria-label="Cross"><svg viewBox="0 0 32 32" width="13" height="13"><g stroke="#fff" stroke-width="2.6" stroke-linecap="round"><line x1="16" y1="5" x2="16" y2="27"/><line x1="5" y1="16" x2="27" y2="16"/></g></svg></button>
+        <button class="mc-fav" data-s="tdot" aria-label="Four-point"><svg viewBox="0 0 32 32" width="13" height="13"><g stroke="#fff" stroke-width="2.6" stroke-linecap="round"><line x1="16" y1="5" x2="16" y2="11"/><line x1="5" y1="16" x2="11" y2="16"/><line x1="21" y1="16" x2="27" y2="16"/><line x1="16" y1="21" x2="16" y2="27"/></g></svg></button>
+      </div>
+
+      <p class="mc-note">Hold right-click over the video to test "hide while aiming."</p>
+      <button class="mc-reset" id="mcReset"><span class="i i-reset"></span>Reset to default</button>
+    </aside>
+  </div>
+</section>
+
+<footer class="dfoot wrap">
+  <p>Want the real thing? <a href="chroma.html#get" class="btn btn-g btn-sm btn-static"><span class="i i-steam"></span>Coming soon</a></p>
+</footer>
+
+<script>
+(function(){
+var mq=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ambient background shader — ripple waveform */
+(function(){
+  var cv=document.getElementById('bgShader');if(!cv)return;
+  var gl=cv.getContext('webgl')||cv.getContext('experimental-webgl');
+  if(!gl)return;
+  var vs='attribute vec2 aPos;void main(){gl_Position=vec4(aPos,0.0,1.0);}';
+  var fs=[
+    'precision mediump float;',
+    'uniform vec2 uRes;uniform float uTime;',
+    'uniform vec3 uC1;uniform vec3 uC2;uniform vec3 uBg;',
+    'void main(){',
+    '  vec2 uv=gl_FragCoord.xy/uRes.xy;',
+    '  vec2 p=uv*2.0-1.0;p.x*=uRes.x/uRes.y;',
+    '  float t=uTime;',
+    '  float y=p.y;',
+    '  float w=sin(p.x*3.0+t*0.9)*0.12+sin(p.x*1.3-t*0.5)*0.08;',
+    '  float line=smoothstep(0.05,0.0,abs(y-w));',
+    '  float glow=smoothstep(0.28,0.0,abs(y-w));',
+    '  vec3 col=mix(uBg,mix(uC1,uC2,uv.x),0.52*line+0.16*glow);',
+    '  gl_FragColor=vec4(col,1.0);',
+    '}'
+  ].join('\n');
+  function compile(type,src){var sh=gl.createShader(type);gl.shaderSource(sh,src);gl.compileShader(sh);return sh;}
+  var prog=gl.createProgram();
+  gl.attachShader(prog,compile(gl.VERTEX_SHADER,vs));
+  gl.attachShader(prog,compile(gl.FRAGMENT_SHADER,fs));
+  gl.linkProgram(prog);
+  if(!gl.getProgramParameter(prog,gl.LINK_STATUS)){return;}
+  gl.useProgram(prog);
+  var buf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+  var aPos=gl.getAttribLocation(prog,'aPos');
+  gl.enableVertexAttribArray(aPos);
+  gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
+  var uRes=gl.getUniformLocation(prog,'uRes'),uTime=gl.getUniformLocation(prog,'uTime'),
+      uC1=gl.getUniformLocation(prog,'uC1'),uC2=gl.getUniformLocation(prog,'uC2'),uBg=gl.getUniformLocation(prog,'uBg');
+  function hexToRgb(hex){var h=hex.replace('#','');return [parseInt(h.substr(0,2),16)/255,parseInt(h.substr(2,2),16)/255,parseInt(h.substr(4,2),16)/255];}
+  var s=getComputedStyle(document.documentElement);
+  var c1=hexToRgb(s.getPropertyValue('--a1').trim()||'#a855f7'),c2=hexToRgb(s.getPropertyValue('--a2').trim()||'#ec4899');
+  gl.uniform3f(uC1,c1[0],c1[1],c1[2]);gl.uniform3f(uC2,c2[0],c2[1],c2[2]);gl.uniform3f(uBg,0.027,0.024,0.051);
+  var dpr=Math.min(window.devicePixelRatio||1,1.5);
+  function resize(){var w=Math.round(window.innerWidth*dpr*0.6),h=Math.round(window.innerHeight*dpr*0.6);if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;gl.viewport(0,0,w,h);gl.uniform2f(uRes,w,h);}}
+  resize();window.addEventListener('resize',resize);
+  var t0=performance.now(),running=true;
+  document.addEventListener('visibilitychange',function(){running=!document.hidden;if(running)tick();});
+  function draw(t){gl.uniform1f(uTime,t);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);}
+  function tick(now){if(!running)return;draw(((now||performance.now())-t0)/1000);if(!mq)requestAnimationFrame(tick);}
+  draw(0);if(!mq)requestAnimationFrame(tick);
+})();
+
+/* mission control open/close */
+var mc=document.getElementById('mc'),toggle=document.getElementById('mcToggle'),closeBtn=document.getElementById('mcClose');
+function openMC(){mc.hidden=false;toggle.hidden=true;toggle.setAttribute('aria-expanded','true');}
+function closeMC(){mc.hidden=true;toggle.hidden=false;toggle.setAttribute('aria-expanded','false');}
+toggle.addEventListener('click',openMC);
+closeBtn.addEventListener('click',closeMC);
+closeBtn.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();closeMC();}});
+
+/* ChromaShift — live sliders driving the video's CSS filter */
+var video=document.getElementById('demoVideo'),overlay=document.getElementById('brightOverlay');
+/* ranges match the real NVIDIA Control Panel fields: Gamma 0.30–2.80,
+   Brightness/Contrast/Digital Vibrance 0–100, all defaulting to neutral. */
+var sliders={
+  gamma:{min:0.30,max:2.80,def:1.00,fmt:function(v){return v.toFixed(2).replace('.',',');}},
+  contrast:{min:0,max:100,def:50,fmt:function(v){return Math.round(v);}},
+  brightness:{min:0,max:100,def:50,fmt:function(v){return Math.round(v);}},
+  vibrance:{min:0,max:100,def:50,fmt:function(v){return Math.round(v);}}
+};
+var state={};
+
+function pctFromValue(key,v){var s=sliders[key];return (v-s.min)/(s.max-s.min)*100;}
+function valueFromPct(key,p){var s=sliders[key];return s.min+(p/100)*(s.max-s.min);}
+
+function applyFilter(){
+  var g=state.gamma,c=state.contrast,b=state.brightness,vb=state.vibrance;
+  var brightnessF=1+(g-1)*0.35;
+  var contrastF=0.5+(c/100)*1.0;
+  var saturateF=0.3+(vb/100)*1.7;
+  video.style.filter='brightness('+brightnessF.toFixed(3)+') contrast('+contrastF.toFixed(3)+') saturate('+saturateF.toFixed(3)+')';
+  var signedB=(b-50)/50;
+  overlay.style.opacity=(Math.abs(signedB)*0.45).toFixed(3);
+  overlay.style.background=signedB>=0?'#fff':'#000';
+}
+
+function setSlider(key,v){
+  var s=sliders[key];
+  v=Math.max(s.min,Math.min(s.max,v));
+  state[key]=v;
+  var p=pctFromValue(key,v);
+  var row=document.querySelector('.mc-row[data-slider="'+key+'"]');
+  row.querySelector('.mc-fill').style.width=p+'%';
+  row.querySelector('.mc-knob').style.left=p+'%';
+  row.querySelector('.mc-row-t span').textContent=s.fmt(v);
+  applyFilter();
+}
+
+document.querySelectorAll('.mc-row[data-slider]').forEach(function(row){
+  var key=row.dataset.slider,track=row.querySelector('.mc-track');
+  var drag=false;
+  function pctFromEvent(x){var r=track.getBoundingClientRect();return Math.max(0,Math.min(100,((x-r.left)/r.width)*100));}
+  track.addEventListener('pointerdown',function(e){e.preventDefault();drag=true;track.setPointerCapture(e.pointerId);setSlider(key,valueFromPct(key,pctFromEvent(e.clientX)));});
+  track.addEventListener('pointermove',function(e){if(drag){e.preventDefault();setSlider(key,valueFromPct(key,pctFromEvent(e.clientX)));}});
+  track.addEventListener('pointerup',function(){drag=false;});
+  track.addEventListener('pointercancel',function(){drag=false;});
+});
+
+/* profile presets — modelled on the settings players actually run in the
+   NVIDIA Control Panel for these games: Valorant gets vibrance pushed hard
+   for enemy-model contrast against its flat art style; Tarkov gets gamma
+   and brightness pushed up to fight its notoriously dark interiors, with
+   contrast eased back so lifted shadows don't crush out detail. */
+var profiles=[
+  {name:'Desktop (default)',gamma:1.00,contrast:50,brightness:50,vibrance:50},
+  {name:'Valorant',gamma:1.05,contrast:53,brightness:52,vibrance:90},
+  {name:'Escape From Tarkov',gamma:1.45,contrast:46,brightness:58,vibrance:62}
+];
+var profIdx=0,profName=document.getElementById('profName');
+function applyProfile(i){
+  profIdx=(i+profiles.length)%profiles.length;
+  var p=profiles[profIdx];
+  profName.textContent=p.name;
+  if(!mq){video.classList.add('easing');setTimeout(function(){video.classList.remove('easing');},400);}
+  ['gamma','contrast','brightness','vibrance'].forEach(function(k){setSlider(k,p[k]);});
+}
+document.getElementById('profPrev').addEventListener('click',function(){applyProfile(profIdx-1);});
+document.getElementById('profNext').addEventListener('click',function(){applyProfile(profIdx+1);});
+[document.getElementById('profPrev'),document.getElementById('profNext')].forEach(function(el,i){
+  el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();applyProfile(profIdx+(i===0?-1:1));}});
+});
+applyProfile(0);
+
+/* ChromaCrosshair */
+var xh=document.getElementById('xh'),togCross=document.getElementById('togCross'),togHide=document.getElementById('togHide');
+var crossOn=true,hideOnRC=false,rcHeld=false;
+function renderTogs(){
+  togCross.querySelector('.mc-sw').classList.toggle('on',crossOn);
+  togHide.querySelector('.mc-sw').classList.toggle('on',hideOnRC);
+  xh.classList.toggle('on',crossOn&&!(hideOnRC&&rcHeld));
+}
+function toggleCross(){crossOn=!crossOn;renderTogs();}
+function toggleHide(){hideOnRC=!hideOnRC;renderTogs();}
+togCross.addEventListener('click',toggleCross);
+togHide.addEventListener('click',toggleHide);
+[togCross,togHide].forEach(function(el,i){
+  el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();(i===0?toggleCross:toggleHide)();}});
+});
+document.querySelectorAll('#shapeRow .mc-fav').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('#shapeRow .mc-fav').forEach(function(x){x.classList.remove('on');});
+    b.classList.add('on');
+    xh.dataset.s=b.dataset.s;
+  });
+});
+var stage=document.getElementById('videoStage');
+stage.addEventListener('contextmenu',function(e){if(hideOnRC)e.preventDefault();});
+stage.addEventListener('pointerdown',function(e){if(e.button===2){rcHeld=true;renderTogs();}});
+window.addEventListener('pointerup',function(e){if(e.button===2&&rcHeld){rcHeld=false;renderTogs();}});
+renderTogs();
+
+/* reset to default */
+document.getElementById('mcReset').addEventListener('click',function(){
+  applyProfile(0);
+  crossOn=true;hideOnRC=false;rcHeld=false;
+  xh.dataset.s='dot';
+  document.querySelectorAll('#shapeRow .mc-fav').forEach(function(b){b.classList.toggle('on',b.dataset.s==='dot');});
+  renderTogs();
+});
+})();
+</script>
+</body>
+</html>
