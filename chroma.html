@@ -3,889 +3,1401 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chroma.GG — Darren Robson</title>
-<meta name="description" content="Chroma.GG: a Windows tray app for automatic per-game display tuning and companion gaming utilities, built by Darren Robson.">
+<title>Chroma.GG · One tray icon. Five tools. Zero overhead.</title>
+<meta name="description" content="Chroma.GG applies your per-game NVIDIA display profile the instant you alt-tab in, and adds a crosshair overlay, an RTSS performance HUD, companion app groups and GPU-accelerated instant replay. A Windows tray app built by Darren Robson.">
+<meta property="og:title" content="Chroma.GG · One tray icon. Five tools. Zero overhead.">
+<meta property="og:description" content="Per-game NVIDIA display profiles that switch the instant you alt-tab in. Plus crosshair, performance HUD, app groups and instant replay.">
+<meta property="og:image" content="assets/chroma-icon-256.png">
 <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="favicon-16.png" sizes="16x16" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:ital,wght@0,500;0,700;1,500;1,700&display=swap">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
+/* Hallmark · macrostructure: Marquee Hero · genre: atmospheric
+ * theme: custom (vibe: "competitive, precise, chromatic" · paper oklch(9% .02 285) · accent violet→pink)
+ * nav: N1b three-section · footer: Ft2 three-column
+ * type: Space Grotesk (display, roman) + JetBrains Mono (data)
+ * enrichment: real product screenshots + live in-browser demos
+ * pre-emit critique: P4 H5 E4 S5 R4 V4
+ */
 :root{
-  --bg:#0b0a13; --bg2:#160e22; --ink:#f4f1fa; --ink-dim:#a89cbd;
-  --violet:#a855f7; --accent:#ec4899; --accent-ink:#1a0a14;
-  --accent-gradient:linear-gradient(90deg, var(--violet), var(--accent));
-  --radius:20px; --ease:cubic-bezier(.16,1,.3,1);
-  --font: 'Space Grotesk', -apple-system, sans-serif;
+  --a1:#a855f7; --a2:#ec4899;
+  --grad:linear-gradient(100deg,var(--a1),var(--a2));
+  --bg:#07060d; --bg2:#0d0a17;
+  --ink:#f6f3fb; --dim:#9d92b5; --dimmer:#6f6685;
+  --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.055);
+  --glass:rgba(255,255,255,.035);
+  --r:18px; --r-lg:26px;
+  --e:cubic-bezier(.16,1,.3,1);
+  --f:'Space Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --m:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --nav-h:66px;
+  --w:1240px;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-h1,h2,h3{margin:0;font-family:var(--font);letter-spacing:-0.02em}
-p{margin:0;color:var(--ink-dim)}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+html,body{overflow-x:clip}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);line-height:1.6;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+h1,h2,h3,h4{margin:0;letter-spacing:-.025em;line-height:1.08;font-weight:700}
+p{margin:0;color:var(--dim)}
 a{color:inherit;text-decoration:none}
-img{max-width:100%;display:block}
+img,video{max-width:100%;display:block}
 ul{margin:0;padding:0;list-style:none}
+button{font-family:inherit}
+::selection{background:var(--a2);color:#fff}
+:focus-visible{outline:2px solid var(--a2);outline-offset:3px;border-radius:6px}
 
-.curtain-canvas{position:fixed;inset:0;z-index:-2;width:100%;height:100%;display:block;background:linear-gradient(180deg,#0b0a13,#160e22 40%,#0b0a13)}
-.bg-vignette{position:fixed;inset:0;z-index:-1;background:radial-gradient(ellipse 1200px 800px at 20% 0%, rgba(88,40,140,.45) 0%, transparent 60%),radial-gradient(ellipse 900px 700px at 100% 100%, rgba(11,10,19,.7) 0%, transparent 60%);pointer-events:none}
+/* scrollbar — tracks the active theme, so it re-skins with the swatches.
+   The opaque border + padding-box clip is what insets the pill without
+   letting the gradient bleed to the track edge. */
+::-webkit-scrollbar{width:12px;height:12px}
+::-webkit-scrollbar-track{background:rgba(255,255,255,.03);border-left:1px solid rgba(255,255,255,.05)}
+::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg,var(--a1),var(--a2));
+  border:3px solid var(--bg);background-clip:padding-box;border-radius:999px;
+  transition:filter .2s}
+::-webkit-scrollbar-thumb:hover{filter:brightness(1.2) saturate(1.1)}
+::-webkit-scrollbar-thumb:active{filter:brightness(1.3)}
+::-webkit-scrollbar-corner{background:transparent}
+/* Firefox only — setting scrollbar-width in Chrome makes it discard the
+   ::-webkit-scrollbar rules above, so it must not apply there. */
+@supports not selector(::-webkit-scrollbar-thumb){
+  html{scrollbar-width:thin;scrollbar-color:var(--a2) rgba(255,255,255,.05)}
+}
 
-.icon{display:inline-block;width:1em;height:1em;background-color:currentColor;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;flex-shrink:0}
-.i-arrow-left{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/arrow-left.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/arrow-left.svg)}
+/* ---------- ambient background ---------- */
+.bg{position:fixed;inset:0;z-index:-3;background:
+  radial-gradient(900px 620px at 12% -8%, rgba(168,85,247,.30), transparent 62%),
+  radial-gradient(760px 540px at 92% 4%, rgba(236,72,153,.22), transparent 60%),
+  radial-gradient(1000px 700px at 50% 108%, rgba(120,60,190,.18), transparent 60%),
+  linear-gradient(180deg,var(--bg),var(--bg2) 45%,var(--bg));}
+.bg-grid{position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.4;
+  background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+  background-size:64px 64px;
+  -webkit-mask-image:radial-gradient(ellipse 90% 60% at 50% 0%,#000 15%,transparent 75%);
+  mask-image:radial-gradient(ellipse 90% 60% at 50% 0%,#000 15%,transparent 75%)}
+.bg-noise{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* ---------- icons ---------- */
+.i{display:inline-block;width:1em;height:1em;background-color:currentColor;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;flex-shrink:0;vertical-align:-.12em}
 .i-monitor{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/monitor.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/monitor.svg)}
 .i-crosshair{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/crosshair.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/crosshair.svg)}
 .i-chart{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/chart-line.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/chart-line.svg)}
 .i-video{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/video-camera.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/video-camera.svg)}
-.i-groups{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/squares-four.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/squares-four.svg)}
-.i-scan{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/magnifying-glass.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/magnifying-glass.svg)}
+.i-squares{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/squares-four.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/squares-four.svg)}
 .i-palette{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/palette.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/palette.svg)}
-.i-lightning{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/lightning.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/lightning.svg)}
+.i-bolt{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/lightning.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/lightning.svg)}
 .i-cpu{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/cpu.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/cpu.svg)}
 .i-play{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/play-circle.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/play-circle.svg)}
 .i-scissors{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/scissors.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/scissors.svg)}
-.i-controller{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/game-controller.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/game-controller.svg)}
+.i-pad{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/game-controller.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/game-controller.svg)}
 .i-spotify{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/spotify-logo.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/spotify-logo.svg)}
-.i-broadcast{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/broadcast.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/broadcast.svg)}
-.i-power{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/power.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/power.svg)}
+.i-cast{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/broadcast.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/broadcast.svg)}
+.i-arrow{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/arrow-right.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/arrow-right.svg)}
+.i-arrow-l{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/arrow-left.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/arrow-left.svg)}
+.i-plus{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/plus.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/plus.svg)}
+.i-check{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/check-circle.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/check-circle.svg)}
+.i-hook{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/tree-structure.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/tree-structure.svg)}
+.i-wave{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/wave-sine.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/wave-sine.svg)}
+.i-shield{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/shield-check.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/shield-check.svg)}
+.i-cam{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/camera.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/camera.svg)}
+.i-rewind{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/rewind.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/rewind.svg)}
+.i-lock{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/lock-simple.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/lock-simple.svg)}
+.i-caret{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/caret-down.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/caret-down.svg)}
+.i-gear{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/gear-six.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/gear-six.svg)}
+.i-reset{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/arrow-counter-clockwise.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/arrow-counter-clockwise.svg)}
+.i-mic{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/microphone.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/microphone.svg)}
+.i-speaker{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/speaker-high.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/speaker-high.svg)}
+.i-discord{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/discord-logo.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/discord-logo.svg)}
 
-.rail{position:fixed;left:22px;top:50%;transform:translateY(-50%);width:26px;height:120px;border:1px solid rgba(255,255,255,0.14);border-radius:999px;z-index:50;display:flex;align-items:flex-start;justify-content:center;padding-top:6px}
-.rail-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);transition:transform .1s linear}
-@media (max-width:900px){.rail{display:none}}
+/* ---------- layout ---------- */
+.wrap{max-width:var(--w);margin:0 auto;padding:0 32px;width:100%}
+.sec{padding:104px 0;position:relative}
+.eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:11.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--a2);margin-bottom:20px}
+.eyebrow::before{content:"";width:22px;height:1.5px;background:var(--grad);border-radius:2px}
+.sec-h{font-size:clamp(2rem,3.6vw,2.9rem);max-width:20ch;margin-bottom:16px}
+.sec-p{max-width:56ch;font-size:1.03rem}
+.sec-head{margin-bottom:52px}
 
-.nav{max-width:1280px;margin:0 auto;padding:24px 40px}
-.nav-inner{display:flex;align-items:center;gap:20px}
-.nav-back{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:.92rem;color:var(--ink-dim);transition:color .2s var(--ease);flex-shrink:0}
-.nav-back:hover{color:var(--accent)}
-.nav-back .icon{font-size:16px}
-.nav-links{display:flex;align-items:center;justify-content:center;gap:26px;flex:1}
-.nav-links a{font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-dim);transition:color .2s var(--ease);white-space:nowrap}
-.nav-links a:hover{color:var(--accent)}
-.nav-brand{display:inline-flex;align-items:center;gap:9px;font-weight:700;font-size:1.05rem;letter-spacing:0.02em;flex-shrink:0}
-.nav-brand img{filter:drop-shadow(0 0 6px rgba(236,72,153,.35))}
-.nav-toggle{display:none;flex-direction:column;justify-content:center;gap:5px;background:none;border:1px solid rgba(255,255,255,.2);border-radius:10px;width:42px;height:38px;cursor:pointer;flex-shrink:0}
-.nav-toggle span{display:block;width:18px;height:2px;background:var(--ink);margin:0 auto;border-radius:2px;transition:transform .25s var(--ease),opacity .25s var(--ease)}
-.nav-toggle.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
-.nav-toggle.open span:nth-child(2){opacity:0}
-.nav-toggle.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
-.nav-mobile{display:none;flex-direction:column;max-width:1280px;margin:10px auto 0;padding:8px 20px 16px;border-radius:var(--radius);background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08)}
-.nav-mobile.open{display:flex}
-.nav-mobile a{padding:12px 0;font-size:13.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-dim);border-bottom:1px solid rgba(255,255,255,.08)}
-.nav-mobile a:last-child{border-bottom:none;color:var(--accent)}
-@media (max-width:980px){.nav-links,.nav-brand{display:none}.nav-toggle{display:flex}}
+/* ---------- nav ---------- */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--nav-h);display:flex;align-items:center;transition:background .3s var(--e),border-color .3s var(--e),backdrop-filter .3s var(--e);border-bottom:1px solid transparent}
+.nav.stuck{background:rgba(7,6,13,.78);backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);border-bottom-color:var(--line2)}
+.nav-in{max-width:var(--w);margin:0 auto;padding:0 32px;width:100%;display:flex;align-items:center;gap:14px}
+.brand{display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:1.02rem;letter-spacing:-.01em;margin-right:auto}
+.brand img{filter:drop-shadow(0 0 8px rgba(236,72,153,.45))}
+.brand b{font-weight:700}
+.brand em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.nav-links{display:flex;gap:4px}
+.nav-links a{padding:8px 13px;border-radius:9px;font-size:13.5px;font-weight:500;color:var(--dim);transition:color .2s,background .2s}
+.nav-links a:hover{color:var(--ink);background:rgba(255,255,255,.05)}
+.nav-cta{display:flex;align-items:center;gap:10px;margin-left:10px}
+.progress{position:absolute;bottom:-1px;left:0;height:2px;width:0;background:var(--grad);box-shadow:0 0 12px var(--a2);transition:width .1s linear}
+.burger{display:none;width:40px;height:36px;border:1px solid var(--line);background:none;border-radius:10px;cursor:pointer;flex-direction:column;justify-content:center;gap:4.5px;padding:0}
+.burger span{display:block;width:16px;height:1.8px;background:var(--ink);margin:0 auto;border-radius:2px;transition:transform .25s var(--e),opacity .2s}
+.burger.on span:nth-child(1){transform:translateY(6.3px) rotate(45deg)}
+.burger.on span:nth-child(2){opacity:0}
+.burger.on span:nth-child(3){transform:translateY(-6.3px) rotate(-45deg)}
+.mnav{display:none;position:fixed;top:var(--nav-h);left:0;right:0;z-index:99;background:rgba(9,7,16,.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--line);padding:10px 32px 20px}
+.mnav.on{display:block}
+.mnav a{display:block;padding:13px 0;border-bottom:1px solid var(--line2);font-size:15px;font-weight:500;color:var(--dim)}
+.mnav a:last-child{border:none;color:var(--a2);font-weight:600}
 
-.hero{max-width:1280px;margin:0 auto;padding:50px 40px 70px}
-.badges{display:flex;gap:10px;margin-bottom:26px;flex-wrap:wrap}
-.hero-title{display:flex;align-items:center;gap:18px}
-.hero-icon{filter:drop-shadow(0 0 10px rgba(236,72,153,.35));flex-shrink:0}
-.badge{font-size:11.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:7px 14px;border-radius:999px}
-.badge-solid{background:var(--accent-gradient);color:#fff}
-.badge-outline{border:1px solid rgba(236,72,153,.5);color:var(--accent)}
-.hero h1{font-size:clamp(2.8rem,6vw,4.6rem);font-weight:700;line-height:0.98}
-.hero h1 em{font-style:italic;color:var(--accent);font-weight:500}
-.hero-sub{max-width:62ch;font-size:1.08rem;margin:24px 0 0;line-height:1.7}
-.hero-meta{margin-top:28px;font-size:.85rem;color:var(--ink-dim);font-family:monospace}
-.hero-meta span{color:var(--accent)}
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:14px 25px;border-radius:999px;font-weight:600;font-size:.94rem;border:none;cursor:pointer;transition:transform .18s var(--e),filter .2s,background .2s,box-shadow .3s;white-space:nowrap;background:none;color:var(--ink)}
+.btn:active{transform:scale(.975)}
+.btn-p{background:var(--grad);color:#fff;box-shadow:0 6px 26px -6px rgba(236,72,153,.6)}
+.btn-p:hover{filter:brightness(1.09);box-shadow:0 10px 34px -6px rgba(236,72,153,.75)}
+.btn-g{box-shadow:inset 0 0 0 1px var(--line);background:rgba(255,255,255,.03)}
+.btn-g:hover{box-shadow:inset 0 0 0 1px rgba(255,255,255,.24);background:rgba(255,255,255,.06)}
+.btn-sm{padding:9px 17px;font-size:.85rem}
+.btn .i{font-size:1.05em}
 
-.section{max-width:1280px;margin:0 auto;padding:50px 40px}
-.section-head{display:flex;align-items:center;gap:14px;margin-bottom:36px}
-.section-head .dash{width:28px;height:3px;background:var(--accent);border-radius:2px}
-.section-head h2{font-size:1.7rem;font-weight:700}
+/* ---------- hero ---------- */
+.hero{padding:calc(var(--nav-h) + 70px) 0 40px;position:relative}
+.hero-grid{display:grid;grid-template-columns:1fr .92fr;gap:56px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:9px;padding:6px 14px 6px 7px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.035);font-size:12.5px;font-weight:500;color:var(--dim);margin-bottom:26px}
+.chip b{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;background:var(--grad);color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
+h1.hero-t{font-size:clamp(2.9rem,5.6vw,4.5rem);line-height:.99;letter-spacing:-.035em}
+h1.hero-t span{background:linear-gradient(100deg,var(--a1),var(--a2) 55%,#fbbf24);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-p{margin-top:24px;font-size:1.13rem;max-width:50ch;line-height:1.65}
+.hero-b{display:flex;gap:12px;margin-top:34px;flex-wrap:wrap}
+.hero-meta{display:flex;gap:22px;margin-top:30px;flex-wrap:wrap;font-size:12.5px;color:var(--dimmer);font-family:var(--m)}
+.hero-meta span{display:inline-flex;align-items:center;gap:7px}
+.hero-meta .i{font-size:14px;color:var(--a1)}
 
-.spotlight{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:36px;display:grid;grid-template-columns:52px 1fr;gap:24px}
-.spotlight .icon-wrap{width:52px;height:52px;border-radius:16px;background:rgba(236,72,153,.12);display:flex;align-items:center;justify-content:center}
-.spotlight .icon-wrap .icon{font-size:26px;color:var(--accent)}
-.spotlight h3{font-size:1.35rem;margin-bottom:12px}
-.spotlight p{font-size:1rem;margin-bottom:14px;line-height:1.7}
-.spotlight ul{margin-top:14px}
-.spotlight ul li{position:relative;padding-left:22px;margin-bottom:10px;font-size:.95rem;color:var(--ink-dim);line-height:1.6}
-.spotlight ul li::before{content:"";position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+/* mission control panel (hero visual) */
+.hero-vis{position:relative}
+.hero-shot{border-radius:10px;overflow:hidden;border:1px solid var(--line);box-shadow:0 40px 90px -20px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.03) inset;position:relative;aspect-ratio:4/3;background:#000}
+.hero-shot img{width:100%;height:100%;object-fit:cover}
+.hero-shot::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(7,6,13,.55));pointer-events:none}
+/* Mission Control — modelled on the real in-game overlay panel */
+.mc{position:absolute;right:-20px;top:50%;transform:translateY(-50%);width:248px;border-radius:16px;padding:14px;z-index:3;
+  background:linear-gradient(180deg,#171021,#0e0a17);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 34px 80px -14px rgba(0,0,0,.92),0 0 46px -14px rgba(168,85,247,.45)}
+.mc-top{display:flex;align-items:center;gap:7px;margin-bottom:14px}
+.mc-mark{position:relative;display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:700;letter-spacing:-.01em;flex-shrink:0}
+.mc-mark img{width:14px;height:14px}
+.mc-mark em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.mc-mark::after{content:"";position:absolute;left:19px;right:0;bottom:-4px;height:1.5px;background:var(--grad);border-radius:2px}
+.mc-sub{font-size:8.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--dimmer);white-space:nowrap}
+.mc-x{margin-left:auto;font-size:12px;color:var(--a2);opacity:.85;line-height:1}
+.mc-lab{font-size:8px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--dimmer);margin:0 0 7px}
+.mc-strip{display:grid;grid-template-columns:repeat(4,1fr) 26px;gap:4px;margin-bottom:10px}
+.mc-thumb img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:5px;border:1px solid rgba(255,255,255,.09)}
+.mc-cap{display:block;margin-top:3px;font-size:7px;color:var(--dimmer);text-align:center;font-family:var(--m)}
+.mc-more{border:1px solid rgba(255,255,255,.1);border-radius:6px;background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center;gap:1px;color:var(--dim);font-size:9px;align-self:start;aspect-ratio:1}
+.mc-acts{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:14px}
+.mc-act{position:relative;padding:9px 2px 7px;border-radius:9px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.028);text-align:center}
+.mc-act.hot{border-color:rgba(236,72,153,.55);background:rgba(236,72,153,.13)}
+.mc-act.hot::after{content:"";position:absolute;top:5px;right:5px;width:4px;height:4px;border-radius:50%;background:var(--a2);box-shadow:0 0 5px var(--a2)}
+.mc-act .i{font-size:13px;color:var(--dim);display:block;margin:0 auto 5px}
+.mc-act.hot .i{color:var(--a2)}
+.mc-act b{display:block;font-size:7.4px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--dim)}
+.mc-act.hot b{color:var(--ink)}
+.mc-act span{display:block;margin-top:2px;font-size:7.5px;color:var(--dimmer);font-family:var(--m)}
+.mc-prof{display:flex;align-items:center;gap:6px;margin-bottom:11px;font-size:10.5px;font-weight:700}
+.mc-prof .i{font-size:10px;color:var(--dim)}
+.mc-prof b{flex:1;text-align:center;font-weight:700}
+.mc-row{margin-bottom:9px}
+.mc-row-t{display:flex;justify-content:space-between;align-items:baseline;font-size:9.5px;margin-bottom:5px}
+.mc-row-t b{color:var(--ink);font-weight:600}
+.mc-row-t span{font-family:var(--m);color:var(--dim);font-size:9px}
+.mc-track{height:3px;border-radius:2px;background:rgba(255,255,255,.11);position:relative}
+.mc-fill{height:100%;border-radius:2px;background:var(--grad)}
+.mc-knob{position:absolute;top:50%;width:9px;height:9px;border-radius:50%;background:var(--a2);transform:translate(-50%,-50%);box-shadow:0 0 0 2px #100b1a,0 0 7px rgba(236,72,153,.7)}
+.mc-tog{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:9.5px;color:var(--dim)}
+.mc-sw{width:20px;height:11px;border-radius:999px;background:rgba(255,255,255,.14);position:relative;flex-shrink:0}
+.mc-sw::after{content:"";position:absolute;top:2px;left:2px;width:7px;height:7px;border-radius:50%;background:var(--dimmer)}
+.mc-favs{display:flex;gap:6px}
+.mc-fav{width:30px;height:30px;border-radius:7px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center}
+.mc-fav.on{border-color:var(--a2);background:rgba(236,72,153,.1)}
+.mc-note{margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.07);font-size:7.6px;line-height:1.45;color:var(--dimmer)}
+.glow{position:absolute;inset:-14%;z-index:-1;background:radial-gradient(circle at 60% 45%,rgba(168,85,247,.4),transparent 62%);filter:blur(52px);pointer-events:none}
 
-.perf-demo{margin-top:20px}
-.perf-frame{position:relative;aspect-ratio:16/9;border-radius:var(--radius);overflow:hidden;border:1px solid rgba(255,255,255,.1);box-shadow:0 30px 70px rgba(0,0,0,.45);background:#000}
-.perf-frame video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.perf-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:16px;flex-wrap:wrap}
-.perf-toggle-row p{font-size:.85rem;margin:0}
+/* ---------- marquee band ---------- */
+.band{border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);background:rgba(255,255,255,.018);padding:26px 0;overflow:hidden}
+.band-in{display:flex;gap:52px;align-items:center;animation:slide 36s linear infinite;width:max-content}
+@keyframes slide{to{transform:translateX(-50%)}}
+.band-item{display:inline-flex;align-items:center;gap:10px;font-size:13.5px;font-weight:500;color:var(--dimmer);white-space:nowrap}
+.band-item .i{font-size:15px;color:var(--a1)}
+.band-item b{color:var(--ink);font-weight:600}
+@media (prefers-reduced-motion:reduce){.band-in{animation:none}}
 
-.cross-demo{margin-top:20px}
-.xh-mark{position:absolute;top:50%;left:50%;width:21px;height:21px;transform:translate(-50%,-50%);opacity:0;transition:opacity .2s var(--ease);pointer-events:none}
-.xh-mark.visible{opacity:1}
-.xh-svg{display:none;position:absolute;inset:0}
-.xh-mark[data-style="dot"] .xh-dot{display:block}
-.xh-mark[data-style="cross"] .xh-cross{display:block}
+/* ---------- stats ---------- */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line2);border:1px solid var(--line2);border-radius:var(--r-lg);overflow:hidden}
+.stat{background:rgba(10,8,18,.6);padding:30px 26px}
+.stat b{display:block;font-size:2.1rem;font-weight:700;letter-spacing:-.03em;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1.1}
+.stat span{display:block;margin-top:7px;font-size:.88rem;color:var(--dim)}
+.stat .stat-pre{margin:0 0 2px;font-family:var(--m);font-size:.68rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--dimmer)}
 
-.cross-controls{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:16px;flex-wrap:wrap}
-.cross-picker{display:flex;gap:10px}
-.cross-swatch{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:border-color .2s var(--ease),background .2s var(--ease)}
-.cross-swatch:hover{border-color:rgba(255,255,255,.25)}
-.cross-swatch.active{border-color:var(--accent);background:rgba(236,72,153,.12)}
+/* ---------- product tour ---------- */
+.tour-tabs{display:flex;gap:6px;padding:6px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.025);margin-bottom:36px;overflow-x:auto;scrollbar-width:none}
+.tour-tabs::-webkit-scrollbar{display:none}
+.tt{flex:1;min-width:132px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 15px;border-radius:999px;border:none;background:none;color:var(--dim);font-size:13.5px;font-weight:600;cursor:pointer;transition:color .22s,background .22s;white-space:nowrap}
+.tt:hover{color:var(--ink)}
+.tt.on{background:var(--grad);color:#fff;box-shadow:0 5px 20px -6px rgba(236,72,153,.6)}
+.tt .i{font-size:16px}
+.pane{display:none}
+.pane.on{display:grid;grid-template-columns:.82fr 1.18fr;gap:44px;align-items:center;animation:fade .45s var(--e)}
+@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.pane-copy h3{font-size:1.85rem;margin-bottom:14px}
+.pane-copy > p{font-size:1rem;line-height:1.7}
+.feat{margin-top:22px;display:flex;flex-direction:column;gap:13px}
+.feat li{display:flex;gap:12px;font-size:.92rem;color:var(--dim);line-height:1.55}
+.feat .i{font-size:17px;color:var(--a2);flex-shrink:0;margin-top:2px}
+.feat b{color:var(--ink);font-weight:600}
+.tag{display:inline-flex;align-items:center;gap:6px;margin-top:22px;padding:7px 13px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.03);font-family:var(--m);font-size:11.5px;color:var(--dim)}
+.tag b{color:var(--a2);font-weight:600}
 
-.replay-demo{margin-top:20px}
-.replay-keycue{
-  position:absolute;bottom:22px;left:50%;transform:translate(-50%,6px);
-  padding:8px 13px;border-radius:8px;
-  background:rgba(15,15,20,.85);border:1px solid rgba(255,255,255,.18);
-  font-family:'Space Grotesk',monospace;font-weight:700;font-size:13px;color:#fff;
-  box-shadow:0 8px 20px rgba(0,0,0,.4);
-  opacity:0;transition:opacity .3s var(--ease),transform .3s var(--ease);
-  pointer-events:none;
+.stage{position:relative;border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--line);background:#05040a;box-shadow:0 34px 80px -22px rgba(0,0,0,.85);aspect-ratio:16/9}
+.stage video,.stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.stage-bar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:15px;flex-wrap:wrap}
+.stage-note{font-size:.83rem;color:var(--dimmer);margin:0}
+
+/* before/after */
+.ba-clip{position:absolute;inset:0;clip-path:inset(0 calc(100% - var(--split,50%)) 0 0)}
+.ba-line{position:absolute;top:0;bottom:0;left:var(--split,50%);width:2px;background:rgba(255,255,255,.9);box-shadow:0 0 14px rgba(0,0,0,.6);pointer-events:none;z-index:3}
+.ba-grip{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;gap:1px;box-shadow:0 6px 22px rgba(0,0,0,.55)}
+.ba-grip .i{font-size:11px;background-color:#0b0a13}
+.ba-tag{position:absolute;bottom:14px;z-index:3;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:6px 12px;border-radius:999px;background:rgba(5,4,10,.72);border:1px solid var(--line);backdrop-filter:blur(6px);pointer-events:none}
+.ba-tag.l{left:14px;color:var(--dim)}
+.ba-tag.r{right:14px;color:var(--a2);border-color:rgba(236,72,153,.42)}
+.scenes{display:flex;gap:8px;flex-wrap:wrap}
+/* outline via inset shadow, not a border — a transparent border over a gradient
+   background bleeds at the radius and fringes the edge */
+.scene{padding:9px 16px;border-radius:999px;border:none;box-shadow:inset 0 0 0 1px var(--line);background:rgba(255,255,255,.03);color:var(--dim);font-size:12.5px;font-weight:600;cursor:pointer;transition:color .2s,box-shadow .2s,background .2s}
+.scene:hover{color:var(--ink);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}
+.scene.on{background:var(--grad);color:#fff;box-shadow:none}
+
+/* perf hud */
+.hud{position:absolute;top:16px;left:16px;z-index:4;display:inline-flex;align-items:center;gap:6px;font-family:var(--m);font-size:10.5px;font-weight:600;color:#fff;white-space:nowrap;cursor:grab;text-shadow:0 1px 3px rgba(0,0,0,.95);opacity:0;pointer-events:none;transition:opacity .25s var(--e);user-select:none;-webkit-user-select:none}
+.hud.on{opacity:1;pointer-events:auto}
+.hud.drag{cursor:grabbing;transition:none}
+.hud u{text-decoration:none;opacity:.42}
+.hud i{font-style:normal;color:var(--a2)}
+/* crosshair */
+.xh{position:absolute;top:50%;left:50%;width:22px;height:22px;transform:translate(-50%,-50%);opacity:0;transition:opacity .2s;pointer-events:none;z-index:4}
+.xh.on{opacity:1}
+.xh svg{display:none;position:absolute;inset:0}
+.xh[data-s="dot"] .s-dot,.xh[data-s="cross"] .s-cross,.xh[data-s="tdot"] .s-tdot{display:block}
+.xh-pick{display:flex;gap:7px}
+.xh-b{width:40px;height:40px;border-radius:11px;border:1px solid var(--line);background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s}
+.xh-b:hover{border-color:rgba(255,255,255,.25)}
+.xh-b.on{border-color:var(--a2);background:rgba(236,72,153,.14)}
+/* replay toast */
+.cue{position:absolute;bottom:20px;left:50%;transform:translate(-50%,6px);z-index:4;padding:7px 13px;border-radius:9px;background:rgba(8,6,14,.88);border:1px solid var(--line);font-family:var(--m);font-weight:600;font-size:12px;opacity:0;transition:.3s var(--e);pointer-events:none}
+.cue.on{opacity:1;transform:translate(-50%,0)}
+.toast{position:absolute;top:16px;right:16px;z-index:4;display:flex;align-items:center;gap:11px;padding:11px 16px 11px 12px;border-radius:13px;background:rgba(10,8,17,.9);backdrop-filter:blur(8px);border:1px solid rgba(236,72,153,.35);box-shadow:0 18px 44px rgba(0,0,0,.55);opacity:0;transform:translateY(-8px);transition:.35s var(--e);pointer-events:none}
+.toast.on{opacity:1;transform:none}
+.toast-i{width:30px;height:30px;border-radius:9px;background:var(--grad);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.toast-i .i{font-size:15px;color:#fff}
+.toast b{display:block;font-size:.85rem}
+.toast span{font-size:.75rem;color:var(--dim)}
+/* companion demo */
+.demo{border-radius:var(--r-lg);border:1px solid var(--line);background:rgba(255,255,255,.025);padding:26px}
+.demo-top{display:flex;align-items:center;gap:14px;padding-bottom:20px;margin-bottom:20px;border-bottom:1px solid var(--line2)}
+.demo-ic{width:46px;height:46px;border-radius:13px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.35s var(--e)}
+.demo-ic .i{font-size:21px;color:var(--dim);transition:.35s}
+.demo-top div{flex:1;min-width:0}
+.demo-top h4{font-size:1rem;margin-bottom:3px}
+.dstat{display:inline-flex;align-items:center;gap:7px;font-size:.82rem;color:var(--dim)}
+.dstat::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--dimmer);transition:.3s}
+.demo.run .demo-ic{background:var(--grad)}
+.demo.run .demo-ic .i{color:#fff}
+.demo.run .dstat{color:var(--a2)}
+.demo.run .dstat::before{background:var(--a2);box-shadow:0 0 9px var(--a2)}
+.apps{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+.app{display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center;padding:17px 10px;border-radius:14px;border:1px solid var(--line2);opacity:.4;transition:.4s var(--e)}
+.app-ic{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center}
+.app-ic .i{font-size:17px;color:var(--dim)}
+.app b{font-size:.82rem;font-weight:600}
+.app small{font-size:.7rem;color:var(--dimmer);font-family:var(--m)}
+.demo.run .app{opacity:1;border-color:var(--line);transform:translateY(-2px)}
+.demo.run .app-ic{background:var(--grad)}
+.demo.run .app-ic .i{color:#fff}
+.demo.run .app small{color:var(--a2)}
+.app:nth-child(2){transition-delay:.06s}.app:nth-child(3){transition-delay:.12s}
+.freed{margin-top:20px;padding-top:18px;border-top:1px solid var(--line2)}
+.freed-t{display:flex;justify-content:space-between;font-size:.83rem;margin-bottom:9px}
+.freed-t b{color:var(--a2);font-family:var(--m);font-weight:600}
+.freed-tr{height:6px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}
+.freed-f{height:100%;width:0;border-radius:999px;background:var(--grad);transition:width .65s var(--e)}
+
+/* app-window screenshot — alpha already carries the window's rounded outline,
+   so the shadow is drawn from the alpha rather than a square wrapper */
+.app-shot{margin:0}
+.app-shot img{width:100%;filter:drop-shadow(0 26px 55px rgba(0,0,0,.75)) drop-shadow(0 0 30px rgba(168,85,247,.16))}
+
+/* ---------- per-app audio mixer ---------- */
+.audio-grid{display:grid;grid-template-columns:.92fr 1.08fr;gap:48px;align-items:center}
+.mix{border-radius:14px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,#15101f,#0d0a16);padding:24px;box-shadow:0 34px 80px -22px rgba(0,0,0,.85)}
+.mix-lab{font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--dimmer);margin:0 0 14px}
+.mix-lab.mt{margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,.07)}
+.mix-row{margin-bottom:17px}
+.mix-head{display:flex;align-items:center;gap:9px;margin-bottom:3px}
+.mix-head b{font-size:.86rem;font-weight:600}
+.mix-head .i{font-size:15px;color:var(--dim)}
+.mix-val{margin-left:auto;font-family:var(--m);font-size:.75rem;color:var(--dim);min-width:38px;text-align:right}
+.mix-dev{display:block;margin-bottom:8px;font-size:.72rem;color:var(--dimmer);font-family:var(--m);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mix-track{height:5px;border-radius:3px;background:rgba(255,255,255,.1);position:relative;cursor:ew-resize;touch-action:none}
+.mix-track::before{content:"";position:absolute;inset:-9px 0;cursor:ew-resize}
+.mix-fill{height:100%;border-radius:3px;background:var(--grad);pointer-events:none}
+.mix-knob{position:absolute;top:50%;width:13px;height:13px;border-radius:50%;background:var(--a2);transform:translate(-50%,-50%);box-shadow:0 0 0 3px #100b1a,0 0 10px rgba(236,72,153,.7);pointer-events:none}
+.mix-row.muted .mix-fill{background:rgba(255,255,255,.16)}
+.mix-row.muted .mix-knob{background:var(--dimmer);box-shadow:0 0 0 3px #100b1a}
+.mix-row.muted .mix-head b,.mix-row.muted .mix-val{color:var(--dimmer)}
+.pin{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 6px;border-radius:4px;background:rgba(236,72,153,.16);color:var(--a2)}
+.mix-sw{width:30px;height:17px;border-radius:999px;background:var(--grad);position:relative;flex-shrink:0;cursor:pointer;border:none;padding:0;transition:background .25s}
+.mix-sw::after{content:"";position:absolute;top:2.5px;left:15px;width:12px;height:12px;border-radius:50%;background:#fff;transition:left .25s var(--e)}
+.mix-sw[aria-pressed="false"]{background:rgba(255,255,255,.16)}
+.mix-sw[aria-pressed="false"]::after{left:2.5px}
+.mix-add{width:100%;margin-top:2px;padding:11px;border-radius:9px;border:1px dashed rgba(255,255,255,.16);background:none;color:var(--dim);font-size:.82rem;font-weight:600;cursor:default}
+.mix-out{margin-top:20px;padding:14px 16px;border-radius:10px;background:rgba(168,85,247,.09);border:1px solid rgba(168,85,247,.22)}
+.mix-out b{display:block;font-size:8.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--dimmer);margin-bottom:5px}
+.mix-out span{font-size:.86rem;color:var(--ink)}
+
+/* ---------- themes ---------- */
+.themes{display:grid;grid-template-columns:1fr 1.1fr;gap:48px;align-items:center}
+.sw-grid{display:flex;gap:11px;flex-wrap:wrap;margin-top:26px}
+.sw{width:52px;height:52px;border-radius:15px;border:2px solid transparent;cursor:pointer;position:relative;transition:transform .22s var(--e),border-color .22s;padding:0}
+.sw:hover{transform:translateY(-3px) scale(1.05)}
+.sw.on{border-color:#fff}
+.sw::after{content:attr(data-n);position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);font-size:10.5px;color:var(--dimmer);white-space:nowrap;font-weight:600}
+/* ChromaShift tab — modelled on the real app window */
+.theme-prev{border-radius:14px;border:1px solid rgba(255,255,255,.12);overflow:hidden;background:linear-gradient(180deg,#15101f,#0d0a16);padding:20px 22px 22px;box-shadow:0 34px 80px -20px rgba(0,0,0,.85)}
+.tp-bar{display:flex;align-items:center;gap:8px;margin-bottom:20px}
+.tp-mark{display:inline-flex;align-items:center;gap:7px;font-size:.95rem;font-weight:700;position:relative}
+.tp-mark img{width:17px;height:17px}
+.tp-mark em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.tp-mark::after{content:"";position:absolute;left:24px;right:0;bottom:-5px;height:2px;background:var(--grad);border-radius:2px}
+.tp-bar .i{margin-left:auto;color:var(--dimmer);font-size:15px}
+.tp-tabs{display:flex;justify-content:space-between;gap:10px;margin-bottom:22px;font-size:10.2px;letter-spacing:-.01em;font-weight:600;color:var(--dimmer);white-space:nowrap}
+.tp-tabs span:first-child{color:var(--a2);position:relative}
+.tp-tabs span:first-child::after{content:"";position:absolute;left:0;right:0;bottom:-7px;height:2px;background:var(--grad);border-radius:2px}
+.tp-row{margin-bottom:15px}
+.tp-row-t{display:flex;align-items:baseline;gap:10px;font-size:11.5px;margin-bottom:7px}
+.tp-row-t b{color:var(--ink);font-weight:600}
+.tp-row-t span{margin-left:auto;font-family:var(--m);font-size:11px;color:var(--dim)}
+.tp-row-t .i{font-size:11px;color:var(--dimmer)}
+.tp-track{height:4px;border-radius:3px;background:rgba(255,255,255,.1);position:relative}
+.tp-fill{height:100%;border-radius:3px;background:var(--grad)}
+.tp-knob{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;background:var(--a2);transform:translate(-50%,-50%);box-shadow:0 0 0 3px #100b1a,0 0 10px rgba(236,72,153,.75)}
+.tp-adv{display:flex;align-items:center;font-size:11.5px;color:var(--dim);padding:13px 0;margin-top:4px;border-top:1px solid rgba(255,255,255,.07)}
+.tp-adv .i{margin-left:auto;font-size:13px;color:var(--dimmer)}
+.tp-btns{display:flex;gap:10px;margin-top:14px}
+.tp-btn{flex:1;padding:11px;border-radius:9px;text-align:center;font-size:.82rem;font-weight:600;border:1px solid rgba(255,255,255,.12)}
+.tp-btn.p{background:var(--grad);border-color:transparent;color:#fff}
+
+/* ---------- engineering ---------- */
+.eng{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.card{border-radius:var(--r-lg);border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.015));padding:30px;position:relative;overflow:hidden;transition:border-color .3s,transform .3s var(--e)}
+.card:hover{border-color:rgba(255,255,255,.18);transform:translateY(-3px)}
+.card::before{content:"";position:absolute;top:0;left:26px;right:26px;height:1px;background:linear-gradient(90deg,transparent,rgba(236,72,153,.55),transparent);opacity:0;transition:opacity .35s}
+.card:hover::before{opacity:1}
+.card-ic{width:44px;height:44px;border-radius:13px;background:rgba(236,72,153,.11);display:flex;align-items:center;justify-content:center;margin-bottom:18px}
+.card-ic .i{font-size:21px;color:var(--a2)}
+.card h3{font-size:1.15rem;margin-bottom:11px}
+.card p{font-size:.93rem;line-height:1.68}
+.card p + p{margin-top:11px}
+.card code{font-family:var(--m);font-size:.86em;color:var(--a1);background:rgba(168,85,247,.1);padding:2px 6px;border-radius:5px}
+.card-tag{display:inline-block;margin-bottom:14px;font-family:var(--m);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--dimmer)}
+
+/* ---------- specs ---------- */
+.spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.spec{border-radius:var(--r-lg);border:1px solid var(--line);background:rgba(255,255,255,.022);overflow:hidden}
+.spec h3{font-size:.82rem;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--dimmer);padding:20px 26px;border-bottom:1px solid var(--line2)}
+.spec dl{margin:0;padding:8px 26px 20px}
+.spec div{display:flex;justify-content:space-between;gap:20px;padding:12px 0;border-bottom:1px solid var(--line2);font-size:.9rem}
+.spec div:last-child{border:none}
+.spec dt{color:var(--dim);margin:0}
+.spec dd{margin:0;font-family:var(--m);font-size:.84rem;color:var(--ink);text-align:right}
+.pills{display:flex;flex-wrap:wrap;gap:9px;margin-top:26px}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;border:1px solid var(--line);font-size:.84rem;font-weight:500;color:var(--dim);background:rgba(255,255,255,.02)}
+.pill .i{font-size:14px;color:var(--a1)}
+
+/* ---------- faq ---------- */
+.faq{max-width:820px;margin:0 auto}
+.q{border-bottom:1px solid var(--line2)}
+.q summary{list-style:none;cursor:pointer;padding:22px 0;display:flex;align-items:center;gap:16px;font-size:1.02rem;font-weight:600}
+.q summary::-webkit-details-marker{display:none}
+.q summary .i{margin-left:auto;font-size:18px;color:var(--dim);transition:transform .3s var(--e)}
+.q[open] summary .i{transform:rotate(180deg);color:var(--a2)}
+.q-a{padding:0 0 22px;font-size:.94rem;line-height:1.7;max-width:70ch}
+.q-a code{font-family:var(--m);font-size:.87em;color:var(--a1)}
+
+/* ---------- cta ---------- */
+.cta{position:relative;border-radius:var(--r-lg);border:1px solid var(--line);overflow:hidden;padding:64px 40px;text-align:center;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015))}
+.cta::before{content:"";position:absolute;inset:0;background:radial-gradient(700px 320px at 50% 0%,rgba(168,85,247,.28),transparent 68%);pointer-events:none}
+.cta h2{font-size:clamp(1.9rem,3.4vw,2.6rem);margin-bottom:14px;position:relative}
+.cta p{max-width:50ch;margin:0 auto 30px;font-size:1.02rem;position:relative}
+.cta-b{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;position:relative}
+.cta-note{margin-top:20px;font-size:.8rem;color:var(--dimmer);position:relative}
+
+/* ---------- footer ---------- */
+.foot{border-top:1px solid var(--line2);padding:38px 0;margin-top:80px}
+.foot-in{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.foot p{font-size:.85rem}
+.foot .sp{margin-left:auto}
+.foot a{font-size:.85rem;color:var(--dim);transition:color .2s}
+.foot a:hover{color:var(--a2)}
+
+/* ---------- reveal ---------- */
+.rv{opacity:0;transform:translateY(20px);transition:opacity .7s var(--e),transform .7s var(--e)}
+.rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}}
+
+/* ---------- feature grid (scope at a glance) ---------- */
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.gcard{border-radius:var(--r);border:1px solid var(--line);background:rgba(255,255,255,.028);padding:24px;transition:border-color .3s,transform .3s var(--e),background .3s}
+.gcard:hover{border-color:rgba(255,255,255,.2);transform:translateY(-3px);background:rgba(255,255,255,.045)}
+.gcard .i{font-size:22px;color:var(--a2);margin-bottom:14px;display:block}
+.gcard h4{font-size:1rem;margin-bottom:8px}
+.gcard p{font-size:.87rem;line-height:1.6}
+
+/* ---------- mid CTA ---------- */
+.midcta{display:flex;align-items:center;justify-content:space-between;gap:26px;flex-wrap:wrap;
+  border-radius:var(--r-lg);border:1px solid var(--line);padding:32px 38px;
+  background:linear-gradient(100deg,rgba(168,85,247,.14),rgba(236,72,153,.09))}
+.midcta h3{font-size:1.35rem;margin-bottom:6px}
+.midcta p{font-size:.92rem}
+
+/* ---------- footer cols ---------- */
+.foot-cols{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:40px;padding-bottom:32px;margin-bottom:28px;border-bottom:1px solid var(--line2)}
+.foot-cols h5{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--dimmer);margin:0 0 14px}
+.foot-cols ul{display:flex;flex-direction:column;gap:10px}
+.foot-cols li a{font-size:.88rem;color:var(--dim)}
+.foot-blurb{font-size:.88rem;max-width:36ch;margin-top:12px}
+
+/* ---------- responsive ---------- */
+@media (min-width:1500px){
+  :root{--w:1360px}
+  h1.hero-t{font-size:4.9rem}
+  .sec{padding:120px 0}
+  .stat b{font-size:2.35rem}
 }
-.replay-keycue.visible{opacity:1;transform:translate(-50%,0)}
-.replay-toast{
-  position:absolute;top:18px;right:18px;
-  display:flex;align-items:center;gap:12px;
-  padding:12px 18px 12px 14px;border-radius:14px;
-  background:rgba(12,10,16,.85);backdrop-filter:blur(6px);
-  border:1px solid rgba(236,72,153,.35);
-  box-shadow:0 16px 40px rgba(0,0,0,.5);
-  opacity:0;transform:translateY(-10px);transition:opacity .35s var(--ease),transform .35s var(--ease);
-  pointer-events:none;
+@media (max-width:1080px){
+  .grid4{grid-template-columns:repeat(2,1fr)}
+  .hero-grid{grid-template-columns:1fr;gap:44px}
+  .hero-p{max-width:60ch}
+  .mc{right:8px;bottom:-24px;width:210px}
+  .pane.on{grid-template-columns:1fr;gap:30px}
+  .themes,.audio-grid{grid-template-columns:1fr;gap:36px}
+  .eng{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(2,1fr)}
 }
-.replay-toast.visible{opacity:1;transform:translateY(0)}
-.replay-toast-icon{width:32px;height:32px;border-radius:9px;background:var(--accent-gradient);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.replay-toast-icon .icon{font-size:16px;color:#fff}
-.replay-toast-text{display:flex;flex-direction:column;gap:1px}
-.replay-toast-text strong{font-size:.88rem;color:#fff}
-.replay-toast-text span{font-size:.78rem;color:var(--ink-dim)}
-
-.gallery{margin-top:20px}
-.gallery-head{font-size:1.15rem;font-weight:700;margin-bottom:20px;color:var(--ink)}
-.gallery-grid{display:grid;grid-template-columns:1fr 1.25fr;gap:24px;align-items:center}
-.gallery-shot-player{border-radius:var(--radius);overflow:hidden;border:1px solid rgba(255,255,255,.1);box-shadow:0 30px 70px rgba(0,0,0,.45)}
-.gallery-shot-player img{width:100%;display:block}
-.gallery-shot-app{padding:10px}
-.gallery-shot-app img{width:100%;display:block;filter:drop-shadow(0 26px 55px rgba(0,0,0,.55))}
-
-@media (max-width:800px){
-  .gallery-grid{grid-template-columns:1fr}
+@media (max-width:820px){
+  .nav-links,.nav-cta .btn-g{display:none}
+  .burger{display:flex}
+  .spec-grid{grid-template-columns:1fr}
+  .grid4{grid-template-columns:1fr;gap:12px}
+  .foot-cols{grid-template-columns:1fr;gap:28px}
+  .midcta{padding:26px 24px;text-align:center;justify-content:center}
+  .midcta div{flex:1 1 100%}
+  .wrap{padding:0 20px}
+  .nav-in{padding:0 20px}
+  .mnav{padding:10px 20px 20px}
+  .sec{padding:76px 0}
+  .hero{padding-top:calc(var(--nav-h) + 46px)}
+  .mc{position:relative;right:auto;bottom:auto;top:auto;transform:none;width:100%;max-width:290px;margin:20px auto 0}
+  .cta{padding:48px 24px}
 }
-.perf-hud{
-  position:absolute;top:14px;left:14px;
-  display:inline-flex;align-items:center;gap:6px;
-  font-family:'Space Grotesk',monospace;font-size:10.5px;font-weight:700;letter-spacing:.01em;
-  color:#fff;white-space:nowrap;cursor:grab;
-  text-shadow:0 1px 2px rgba(0,0,0,.95),0 0 6px rgba(0,0,0,.6);
-  opacity:0;pointer-events:none;transition:opacity .25s var(--ease);
-  -webkit-user-select:none;user-select:none;
-}
-.perf-hud.visible{opacity:1;pointer-events:auto}
-.perf-hud.dragging{cursor:grabbing;transition:none}
-.perf-hud .sep{color:rgba(255,255,255,.5)}
-.perf-hud .stat-label{color:#fff}
-.perf-hud .stat-fps,
-.perf-hud .stat-cpu,
-.perf-hud .stat-ram,
-.perf-hud .stat-gpu,
-.perf-hud .stat-temp,
-.perf-hud .stat-vram{color:var(--accent)}
-
-.ba-slider{margin-top:20px;position:relative}
-.ba-frame{position:relative;aspect-ratio:16/9;border-radius:var(--radius);overflow:hidden;border:1px solid rgba(255,255,255,.1);box-shadow:0 30px 70px rgba(0,0,0,.45);cursor:ew-resize;-webkit-user-select:none;user-select:none}
-.ba-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
-.ba-before-wrap{position:absolute;inset:0;clip-path:inset(0 calc(100% - var(--split, 50%)) 0 0)}
-.ba-label{position:absolute;bottom:16px;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:7px 14px;border-radius:999px;background:rgba(7,19,15,.65);border:1px solid rgba(255,255,255,.16);pointer-events:none}
-.ba-label-before{left:16px}
-.ba-label-after{right:16px;color:var(--accent);border-color:rgba(236,72,153,.4)}
-.ba-handle{position:absolute;top:0;bottom:0;left:var(--split, 50%);width:0;pointer-events:none}
-.ba-handle::before{content:"";position:absolute;top:0;bottom:0;left:-1px;width:2px;background:rgba(255,255,255,.85);box-shadow:0 0 12px rgba(0,0,0,.5)}
-.ba-handle-grip{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:42px;height:42px;border-radius:50%;background:var(--ink);display:flex;align-items:center;justify-content:center;gap:1px;box-shadow:0 6px 20px rgba(0,0,0,.5)}
-.ba-handle-grip .icon{width:11px;height:11px;background-color:var(--accent-ink)}
-.ba-handle-grip .ba-flip{transform:scaleX(-1)}
-.ba-range{-webkit-appearance:none;appearance:none;width:100%;margin:14px 0 0;height:28px;background:transparent;cursor:ew-resize}
-.ba-range::-webkit-slider-runnable-track{height:4px;background:rgba(255,255,255,.12);border-radius:999px}
-.ba-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);border:3px solid var(--bg);margin-top:-7px;box-shadow:0 2px 8px rgba(0,0,0,.4)}
-.ba-range::-moz-range-track{height:4px;background:rgba(255,255,255,.12);border-radius:999px}
-.ba-range::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--accent);border:3px solid var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.4)}
-
-.demo{margin-top:20px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:32px}
-.demo-label{font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:20px;display:block}
-.demo-main{display:flex;align-items:center;gap:16px;padding-bottom:24px;margin-bottom:24px;border-bottom:1px solid rgba(255,255,255,.08)}
-.demo-main-icon{width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .3s var(--ease)}
-.demo-main-icon .icon{font-size:24px;color:var(--ink-dim);transition:color .3s var(--ease)}
-.demo-main-info{flex:1;min-width:0}
-.demo-main-info h4{font-size:1.05rem;font-weight:700;margin-bottom:4px}
-.demo-status{display:inline-flex;align-items:center;gap:7px;font-size:.82rem;color:var(--ink-dim)}
-.demo-status::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ink-dim);transition:background .3s var(--ease)}
-.demo-toggle{flex-shrink:0;padding:12px 22px;font-size:.88rem}
-.demo.running .demo-main-icon{background:var(--accent-gradient)}
-.demo.running .demo-main-icon .icon{color:#fff}
-.demo.running .demo-status{color:var(--accent)}
-.demo.running .demo-status::before{background:var(--accent);box-shadow:0 0 8px var(--accent)}
-
-.demo-apps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.demo-app{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding:20px 12px;border-radius:16px;border:1px solid rgba(255,255,255,.07);opacity:.45;transition:opacity .4s var(--ease),border-color .4s var(--ease),transform .4s var(--ease)}
-.demo-app-icon{width:40px;height:40px;border-radius:11px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center}
-.demo-app-icon .icon{font-size:19px;color:var(--ink-dim)}
-.demo-app-name{font-size:.84rem;font-weight:600}
-.demo-app-status{font-size:.72rem;color:var(--ink-dim);letter-spacing:.03em}
-.demo.running .demo-app{opacity:1;border-color:rgba(255,255,255,.1);transform:translateY(-2px)}
-.demo.running .demo-app-icon{background:var(--accent-gradient)}
-.demo.running .demo-app-icon .icon{color:#fff}
-.demo.running .demo-app-status{color:var(--accent)}
-.demo-app:nth-child(1){transition-delay:.02s}
-.demo-app:nth-child(2){transition-delay:.08s}
-.demo-app:nth-child(3){transition-delay:.14s}
-.demo-app:nth-child(4){transition-delay:.2s}
-.demo-app-stats{display:flex;align-items:center;gap:6px;font-size:.72rem;font-family:monospace;color:var(--ink-dim);opacity:.5;transition:opacity .3s var(--ease)}
-.demo.running .demo-app-stats{opacity:1}
-.demo.running .demo-app .stat-ram,.demo.running .demo-app .stat-cpu{color:var(--accent)}
-.stat-sep{opacity:.5}
-
-.freed-bar{margin-top:24px;padding-top:22px;border-top:1px solid rgba(255,255,255,.08)}
-.freed-bar-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;font-size:.85rem}
-.freed-bar-head span:first-child{color:var(--ink-dim)}
-.freed-bar-head span:last-child{font-weight:700;color:var(--accent);font-family:monospace}
-.freed-track{height:8px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden}
-.freed-fill{height:100%;width:0%;border-radius:999px;background:var(--accent-gradient);transition:width .6s var(--ease)}
-.demo.running .freed-fill{background:rgba(255,255,255,.1)}
-
-.demo-note{margin-top:22px;font-size:.85rem;color:var(--ink-dim)}
-.demo-note strong{color:var(--ink)}
-
-@media (max-width:640px){.demo-apps{grid-template-columns:repeat(2,1fr)}.demo-main{flex-wrap:wrap}}
-
-.library{margin-top:20px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:36px;display:grid;grid-template-columns:1fr 1fr;gap:32px}
-.library h3{font-size:1.3rem;margin-bottom:14px}
-.library p{font-size:.96rem;margin-bottom:14px;line-height:1.7}
-.library-feats li{display:flex;gap:12px;padding:14px 0;border-top:1px solid rgba(255,255,255,.08)}
-.library-feats li:first-child{border-top:none}
-.library-feats .icon{font-size:18px;color:var(--accent);flex-shrink:0;margin-top:2px}
-.library-feats strong{color:var(--ink);display:block;margin-bottom:3px;font-size:.92rem}
-.library-feats span{font-size:.86rem;color:var(--ink-dim)}
-
-.stack-grid{display:flex;flex-wrap:wrap;gap:12px}
-.stack-pill{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;border:1px solid rgba(255,255,255,.12);font-size:.85rem;font-weight:600}
-.stack-pill .icon{font-size:15px;color:var(--accent)}
-
-.stack-note{margin-top:28px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:26px}
-.stack-note h3{font-size:1rem;margin-bottom:10px}
-.stack-note p{font-size:.92rem;line-height:1.7}
-.stack-note code{color:var(--accent);font-family:monospace;font-size:.88em}
-
-.cta{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:40px;text-align:center}
-.cta h2{font-size:1.5rem;margin-bottom:12px}
-.cta p{max-width:52ch;margin:0 auto 24px;font-size:.98rem}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:15px 26px;border-radius:999px;font-weight:700;font-size:.95rem;font-family:inherit;white-space:nowrap;background:transparent;border:none;cursor:pointer;transition:transform .2s var(--ease),background .2s var(--ease)}
-.btn:active{transform:scale(.97)}
-.btn-solid{background:var(--accent-gradient);color:#fff}
-.btn-solid:hover{filter:brightness(1.1)}
-.btn-outline{border:1px solid rgba(255,255,255,.18);color:var(--ink)}
-.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
-
-.footer{max-width:1280px;margin:0 auto;padding:30px 40px;border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;font-size:.85rem;color:var(--ink-dim)}
-
-.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
-.reveal.in{opacity:1;transform:none}
-
-@media (max-width:900px){
-  .hero,.section,.nav,.footer{padding-left:20px;padding-right:20px}
-  .hero-icon{width:40px;height:40px}
-  .spotlight{grid-template-columns:1fr}
-  .library{grid-template-columns:1fr}
+@media (max-width:560px){
+  .stats{grid-template-columns:1fr 1fr}
+  .stat{padding:22px 18px}
+  .stat b{font-size:1.7rem}
+  .apps{grid-template-columns:1fr}
+  .hero-b .btn{flex:1}
 }
 </style>
 </head>
 <body>
-<canvas id="curtainCanvas" class="curtain-canvas" aria-hidden="true" data-dark1="#0b0a13" data-dark2="#160e22" data-accent="#ec4899" data-accent2="#a855f7"></canvas>
-<div class="bg-vignette"></div>
-<div class="rail" aria-hidden="true"><div class="rail-dot" id="railDot"></div></div>
+<div class="bg"></div><div class="bg-grid"></div><div class="bg-noise"></div>
 
-<header class="nav">
-  <div class="nav-inner">
-    <a href="index.html" class="nav-back"><span class="icon i-arrow-left"></span> Darren Robson</a>
-    <nav class="nav-links" aria-label="Chroma.GG features">
-      <a href="#shift">Shift</a>
-      <a href="#companion">Companion</a>
-      <a href="#crosshair">Crosshair</a>
-      <a href="#performance">Performance</a>
-      <a href="#replay">Replay</a>
+<header class="nav" id="nav">
+  <div class="nav-in">
+    <a href="#top" class="brand"><img src="assets/chroma-icon-64.png" alt="" width="24" height="24"> <b>Chroma</b><em>.GG</em></a>
+    <nav class="nav-links">
+      <a href="#tour">Features</a>
+      <a href="#compare">See it</a>
+      <a href="#audio">Audio</a>
+      <a href="#themes">Themes</a>
+      <a href="#engineering">Under the hood</a>
+      <a href="#specs">Specs</a>
+      <a href="#faq">FAQ</a>
     </nav>
-    <span class="nav-brand"><img src="assets/chroma-icon-64.png" alt="" width="22" height="22"> Chroma.GG</span>
-    <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false">
-      <span></span><span></span><span></span>
-    </button>
+    <div class="nav-cta">
+      <a href="#get" class="btn btn-p btn-sm">Get early access</a>
+    </div>
+    <button class="burger" id="burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
   </div>
-  <nav class="nav-mobile" id="navMobile" aria-label="Mobile">
-    <a href="#shift">ChromaShift</a>
-    <a href="#companion">ChromaCompanion</a>
-    <a href="#crosshair">ChromaCrosshair</a>
-    <a href="#performance">ChromaPerformance</a>
-    <a href="#replay">ChromaReplay</a>
-    <a href="index.html">Back to portfolio</a>
-  </nav>
+  <div class="progress" id="prog"></div>
 </header>
+<div class="mnav" id="mnav">
+  <a href="#tour">Features</a>
+  <a href="#compare">See it</a>
+  <a href="#audio">Audio</a>
+  <a href="#themes">Themes</a>
+  <a href="#engineering">Under the hood</a>
+  <a href="#specs">Specs</a>
+  <a href="#faq">FAQ</a>
+</div>
 
-<section class="hero">
-  <div class="reveal">
-    <div class="badges">
-      <span class="badge badge-solid">In Development</span>
-      <span class="badge badge-outline">Windows · NVIDIA</span>
-    </div>
-    <h1 class="hero-title"><img src="assets/chroma-icon-128.png" alt="" width="56" height="56" class="hero-icon">Chroma<em>.GG</em></h1>
-    <p class="hero-sub">A Windows tray app that automatically applies per-game display tuning and adds a suite of companion gaming utilities, all running quietly in the background and switching the instant you alt-tab into a game.</p>
-    <p class="hero-meta">codebase: <span>ChromaShift</span> · .NET 8 · WPF · x64</p>
-  </div>
-</section>
-
-<section class="section" id="shift">
-  <div class="section-head"><span class="dash"></span><h2>ChromaShift</h2></div>
-  <div class="spotlight reveal">
-    <div class="icon-wrap"><span class="icon i-monitor"></span></div>
-    <div>
-      <h3>Automatic per-game display profiles</h3>
-      <p>Detects the focused window in real time and applies a saved Gamma / Contrast / Brightness / Digital Vibrance profile the moment you switch into a game, reverting the instant you switch out. Built directly on NVAPI (nvapi64.dll), so changes apply at the display-output level, not through a software overlay.</p>
-      <ul>
-        <li>Profiles are per-game, hotkey-switchable, and lockable.</li>
-        <li>A global-hotkey "Quick Adjust" HUD lets you live-tune sliders and cycle profiles without leaving the game.</li>
-        <li>Focus tracking runs on <code style="color:var(--accent);font-family:monospace">SetWinEventHook</code>, not polling, so it's instant and idle-cost-free.</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="ba-slider reveal" data-ba>
-    <div class="ba-frame" data-ba-frame>
-      <img src="assets/chroma/office-after.jpg" alt="Office, with a Chroma.GG display profile applied" class="ba-img">
-      <div class="ba-before-wrap" data-ba-wrap>
-        <img src="assets/chroma/office-before.jpg" alt="Office, default display, no profile applied" class="ba-img">
+<!-- ============ HERO ============ -->
+<section class="hero" id="top">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <span class="chip"><b>In development</b> Windows · NVIDIA · free</span>
+        <h1 class="hero-t">One tray icon.<br>Five tools.<br><span>Zero overhead.</span></h1>
+        <p class="hero-p">Chroma.GG watches which window has focus and applies your per-game display profile the instant you alt-tab in, then puts it back when you leave. Crosshair, performance HUD, app groups and instant replay all run inside the same 30&nbsp;MB process.</p>
+        <div class="hero-b">
+          <a href="#get" class="btn btn-p">Get early access <span class="i i-arrow"></span></a>
+          <a href="#tour" class="btn btn-g"><span class="i i-play"></span> See it work</a>
+        </div>
+        <div class="hero-meta">
+          <span><span class="i i-bolt"></span> Event-driven, never polls</span>
+          <span><span class="i i-cpu"></span> ~0% CPU at idle</span>
+          <span><span class="i i-shield"></span> No game hooking</span>
+        </div>
       </div>
-      <span class="ba-label ba-label-before">Before</span>
-      <span class="ba-label ba-label-after">After</span>
-      <div class="ba-handle" data-ba-handle>
-        <span class="ba-handle-grip">
-          <span class="icon i-arrow-left"></span>
-          <span class="icon i-arrow-left ba-flip"></span>
-        </span>
-      </div>
-    </div>
-    <input type="range" min="0" max="100" value="50" class="ba-range" data-ba-range aria-label="Drag to compare default display versus a Chroma.GG profile applied">
-  </div>
+      <div class="hero-vis">
+        <div class="glow"></div>
+        <div class="hero-shot">
+          <img src="assets/chroma/ui-fullscreen.jpg" alt="Chroma.GG running over a live game" loading="eager">
+        </div>
+        <!-- Mission Control panel -->
+        <aside class="mc" aria-label="Mission Control overlay preview">
+          <div class="mc-top">
+            <span class="mc-mark"><img src="assets/chroma-icon-64.png" alt="">Chroma<em>.GG</em></span>
+            <span class="mc-sub">· Mission Control</span>
+            <span class="mc-x">✕</span>
+          </div>
 
-  <div class="ba-slider reveal" data-ba>
-    <div class="ba-frame" data-ba-frame>
-      <img src="assets/chroma/val-after.jpg" alt="Sunset district, with a Chroma.GG display profile applied" class="ba-img">
-      <div class="ba-before-wrap" data-ba-wrap>
-        <img src="assets/chroma/val-before.jpg" alt="Sunset district, default display, no profile applied" class="ba-img">
-      </div>
-      <span class="ba-label ba-label-before">Before</span>
-      <span class="ba-label ba-label-after">After</span>
-      <div class="ba-handle" data-ba-handle>
-        <span class="ba-handle-grip">
-          <span class="icon i-arrow-left"></span>
-          <span class="icon i-arrow-left ba-flip"></span>
-        </span>
-      </div>
-    </div>
-    <input type="range" min="0" max="100" value="50" class="ba-range" data-ba-range aria-label="Drag to compare default display versus a Chroma.GG profile applied">
-  </div>
-</section>
+          <p class="mc-lab">ChromaReplay</p>
+          <div class="mc-strip">
+            <div class="mc-thumb"><img src="assets/chroma/replay-poster.jpg" alt="" loading="lazy"><span class="mc-cap">5d ago</span></div>
+            <div class="mc-thumb"><img src="assets/chroma/perf-poster.jpg" alt="" loading="lazy"><span class="mc-cap">5d ago</span></div>
+            <div class="mc-thumb"><img src="assets/chroma/outside-after.jpg" alt="" loading="lazy"><span class="mc-cap">5d ago</span></div>
+            <div class="mc-thumb"><img src="assets/chroma/room-after.jpg" alt="" loading="lazy"><span class="mc-cap">5d ago</span></div>
+            <div class="mc-more">☰›</div>
+          </div>
+          <div class="mc-acts">
+            <div class="mc-act"><span class="i i-rewind"></span><b>Replay</b><span>F6</span></div>
+            <div class="mc-act"><span class="i i-cam"></span><b>Capture</b><span>F9</span></div>
+            <div class="mc-act hot"><span class="i i-chart"></span><b>Performance</b><span>F8</span></div>
+          </div>
 
-<section class="section" id="companion">
-  <div class="section-head"><span class="dash"></span><h2>ChromaCompanion</h2></div>
-  <div class="spotlight reveal">
-    <div class="icon-wrap"><span class="icon i-groups"></span></div>
-    <div>
-      <h3>App groups &amp; library scanning</h3>
-      <p>Launch or close bundles of supporting apps, like Discord or voice comms, alongside a game. Chroma.GG also auto-discovers your installed games via Steam and Epic library scans, plus a general installed-apps index, so there's little manual setup.</p>
-      <ul>
-        <li>Companion app groups launch and close together with a game.</li>
-        <li>Steam and Epic library scans, plus a general installed-apps index.</li>
-      </ul>
-    </div>
-  </div>
+          <p class="mc-lab">ChromaShift</p>
+          <div class="mc-prof">
+            <span class="i i-arrow-l"></span>
+            <b>Desktop (default)</b>
+            <span class="i i-lock"></span>
+            <span class="i i-arrow"></span>
+          </div>
+          <div class="mc-row">
+            <div class="mc-row-t"><b>Gamma</b><span>1,03</span></div>
+            <div class="mc-track"><div class="mc-fill" style="width:34%"></div><div class="mc-knob" style="left:34%"></div></div>
+          </div>
+          <div class="mc-row">
+            <div class="mc-row-t"><b>Contrast</b><span>0,51</span></div>
+            <div class="mc-track"><div class="mc-fill" style="width:51%"></div><div class="mc-knob" style="left:51%"></div></div>
+          </div>
+          <div class="mc-row">
+            <div class="mc-row-t"><b>Brightness</b><span>0,00</span></div>
+            <div class="mc-track"><div class="mc-fill" style="width:50%"></div><div class="mc-knob" style="left:50%"></div></div>
+          </div>
+          <div class="mc-row" style="margin-bottom:13px">
+            <div class="mc-row-t"><b>Digital Vibrance</b><span>73</span></div>
+            <div class="mc-track"><div class="mc-fill" style="width:73%"></div><div class="mc-knob" style="left:73%"></div></div>
+          </div>
 
-  <div class="demo reveal" id="companionDemo">
-    <span class="demo-label">Try it</span>
-    <div class="demo-main">
-      <div class="demo-main-icon"><span class="icon i-controller"></span></div>
-      <div class="demo-main-info">
-        <h4>Your game</h4>
-        <span class="demo-status" id="demoStatus">Not running</span>
-      </div>
-      <button class="btn btn-solid demo-toggle" id="demoToggle">Launch</button>
-    </div>
-    <div class="demo-apps" id="demoApps">
-      <div class="demo-app" data-ram="210" data-cpu="2">
-        <div class="demo-app-icon"><span class="icon i-lightning"></span></div>
-        <span class="demo-app-name">Blitz.GG</span>
-        <span class="demo-app-status">Idle</span>
-        <span class="demo-app-stats"><span class="stat-ram">0 MB</span><span class="stat-sep">·</span><span class="stat-cpu">0% CPU</span></span>
-      </div>
-      <div class="demo-app" data-ram="480" data-cpu="9">
-        <div class="demo-app-icon"><span class="icon i-broadcast"></span></div>
-        <span class="demo-app-name">OBS Studio</span>
-        <span class="demo-app-status">Idle</span>
-        <span class="demo-app-stats"><span class="stat-ram">0 MB</span><span class="stat-sep">·</span><span class="stat-cpu">0% CPU</span></span>
-      </div>
-      <div class="demo-app" data-ram="260" data-cpu="1">
-        <div class="demo-app-icon"><span class="icon i-spotify"></span></div>
-        <span class="demo-app-name">Spotify</span>
-        <span class="demo-app-status">Idle</span>
-        <span class="demo-app-stats"><span class="stat-ram">0 MB</span><span class="stat-sep">·</span><span class="stat-cpu">0% CPU</span></span>
-      </div>
-    </div>
+          <p class="mc-lab">ChromaCrosshair (Default)</p>
+          <div class="mc-tog"><span class="mc-sw"></span>Enable crosshair</div>
+          <div class="mc-tog" style="margin-bottom:12px"><span class="mc-sw"></span>Hide while right-click held</div>
 
-    <div class="freed-bar" id="freedBar">
-      <div class="freed-bar-head">
-        <span id="freedLabel">Apps active — nothing freed yet</span>
-        <span id="freedValue"></span>
-      </div>
-      <div class="freed-track"><div class="freed-fill" id="freedFill"></div></div>
-    </div>
+          <p class="mc-lab">Favorites</p>
+          <div class="mc-favs">
+            <div class="mc-fav on"><svg viewBox="0 0 32 32" width="13" height="13"><circle cx="16" cy="16" r="4" fill="#fff"/></svg></div>
+            <div class="mc-fav"><svg viewBox="0 0 32 32" width="13" height="13"><g stroke="#fff" stroke-width="2.6" stroke-linecap="round"><line x1="16" y1="5" x2="16" y2="27"/><line x1="5" y1="16" x2="27" y2="16"/></g></svg></div>
+          </div>
 
-    <p class="demo-note">This is an illustrative demo of the app-group lifecycle: launch the main app and its bound companions start with it; close it and Chroma.GG closes them too, so nothing keeps eating <strong>CPU</strong>, <strong>RAM</strong> or GPU cycles in the background.</p>
-  </div>
-</section>
-
-<section class="section" id="crosshair">
-  <div class="section-head"><span class="dash"></span><h2>ChromaCrosshair</h2></div>
-  <div class="spotlight reveal">
-    <div class="icon-wrap"><span class="icon i-crosshair"></span></div>
-    <div>
-      <h3>Crosshair overlay</h3>
-      <p>A click-through crosshair overlay, drawn per-profile so each game can keep its own shape and color.</p>
-      <ul>
-        <li>Custom shapes and colors.</li>
-        <li>Click-through, so it never intercepts input.</li>
-        <li>Favorites gallery for quick switching between saved crosshairs.</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="cross-demo reveal">
-    <div class="perf-frame" id="crossFrame">
-      <video autoplay loop muted playsinline poster="assets/chroma/perf-poster.jpg">
-        <source src="assets/chroma/perf-loop.mp4" type="video/mp4">
-      </video>
-      <div class="xh-mark" id="xhMark" data-style="dot">
-        <svg class="xh-svg xh-dot" viewBox="0 0 32 32" width="21" height="21">
-          <circle cx="16" cy="16" r="4" fill="#000" fill-opacity=".5"/>
-          <circle cx="16" cy="16" r="3" fill="#fff"/>
-        </svg>
-        <svg class="xh-svg xh-cross" viewBox="0 0 32 32" width="21" height="21">
-          <g stroke="#000" stroke-opacity=".5" stroke-width="4.5" stroke-linecap="round">
-            <line x1="16" y1="4" x2="16" y2="28"/>
-            <line x1="4" y1="16" x2="28" y2="16"/>
-          </g>
-          <g stroke="#fff" stroke-width="2" stroke-linecap="round">
-            <line x1="16" y1="4" x2="16" y2="28"/>
-            <line x1="4" y1="16" x2="28" y2="16"/>
-          </g>
-        </svg>
-      </div>
-    </div>
-    <div class="cross-controls">
-      <div class="cross-picker" id="crossPicker" role="group" aria-label="Crosshair style">
-        <button type="button" class="cross-swatch active" data-style="dot" aria-label="Dot crosshair" aria-pressed="true">
-          <svg viewBox="0 0 32 32" width="20" height="20">
-            <circle cx="16" cy="16" r="4.5" fill="#fff"/>
-          </svg>
-        </button>
-        <button type="button" class="cross-swatch" data-style="cross" aria-label="Cross crosshair" aria-pressed="false">
-          <svg viewBox="0 0 32 32" width="20" height="20">
-            <g stroke="#fff" stroke-width="2.6" stroke-linecap="round">
-              <line x1="16" y1="4" x2="16" y2="28"/>
-              <line x1="4" y1="16" x2="28" y2="16"/>
-            </g>
-          </svg>
-        </button>
-      </div>
-      <button class="btn btn-outline" id="crossToggle">Show crosshair</button>
-    </div>
-  </div>
-</section>
-
-<section class="section" id="performance">
-  <div class="section-head"><span class="dash"></span><h2>ChromaPerformance</h2></div>
-  <div class="spotlight reveal">
-    <div class="icon-wrap"><span class="icon i-chart"></span></div>
-    <div>
-      <h3>Performance overlay</h3>
-      <p>FPS, frametime and hardware stats pulled from RTSS shared memory, shown in a draggable in-game HUD you can position anywhere on screen.</p>
-      <ul>
-        <li>Live FPS and frametime readout.</li>
-        <li>Hardware stats via RTSS shared memory.</li>
-        <li>Draggable HUD, positioned per your preference.</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="perf-demo reveal">
-    <div class="perf-frame" id="perfFrame">
-      <video autoplay loop muted playsinline poster="assets/chroma/perf-poster.jpg">
-        <source src="assets/chroma/perf-loop.mp4" type="video/mp4">
-      </video>
-      <div class="perf-hud visible" id="perfHud">
-        <span class="stat-label">FPS</span> <span class="stat-fps" id="perfFps">—</span>
-        <span class="sep">|</span>
-        <span class="stat-label">CPU</span> <span class="stat-cpu" id="perfCpu">30%</span>
-        <span class="sep">|</span>
-        <span class="stat-label">RAM</span> <span class="stat-ram" id="perfRam">45%</span>
-        <span class="sep">|</span>
-        <span class="stat-label">GPU</span> <span class="stat-gpu" id="perfGpu">80%</span>
-        <span class="sep">|</span>
-        <span class="stat-label">GPU TEMP</span> <span class="stat-temp" id="perfTemp">64°C</span>
-        <span class="sep">|</span>
-        <span class="stat-label">VRAM</span> <span class="stat-vram" id="perfVram">70%</span>
-      </div>
-    </div>
-    <div class="perf-toggle-row">
-      <p class="demo-note" style="margin-top:0">Drag the HUD anywhere on screen, same as in the app.</p>
-      <button class="btn btn-outline" id="perfToggle">Show overlay</button>
-    </div>
-  </div>
-</section>
-
-<section class="section" id="replay">
-  <div class="section-head"><span class="dash"></span><h2>ChromaReplay</h2></div>
-  <div class="spotlight reveal">
-    <div class="icon-wrap"><span class="icon i-video"></span></div>
-    <div>
-      <h3>Instant replay &amp; screenshots</h3>
-      <p>A rolling replay buffer plus one-key clip and screenshot capture, entirely on the GPU: DXGI Desktop Duplication feeds NVENC hardware encoding, with WASAPI loopback audio muxed in via Media Foundation. An optional "match display profile" mode re-applies your color adjustments to captured footage, since NVIDIA's display-level Gamma/Vibrance doesn't otherwise show up in raw captures.</p>
-    </div>
-  </div>
-
-  <div class="replay-demo reveal">
-    <div class="perf-frame" id="replayFrame">
-      <video id="replayVideo" autoplay loop muted playsinline poster="assets/chroma/replay-poster.jpg">
-        <source src="assets/chroma/replay-loop.mp4" type="video/mp4">
-      </video>
-      <div class="replay-keycue" id="replayKeycue">F9</div>
-      <div class="replay-toast" id="replayToast">
-        <span class="replay-toast-icon"><span class="icon i-video"></span></span>
-        <span class="replay-toast-text">
-          <strong>Replay Saved</strong>
-          <span>How To Fish</span>
-        </span>
-      </div>
-    </div>
-    <p class="demo-note">Illustrative: pressing the clip hotkey saves the last few minutes of gameplay instantly, with a quick on-screen confirmation.</p>
-  </div>
-
-  <div class="library reveal">
-    <div>
-      <h3>Everything you capture, in one place</h3>
-      <p>The Library tab lists every recorded clip and screenshot, auto-scanned from the output folder with thumbnails cached for fast browsing, and searchable and filterable by game.</p>
-      <p>The Quick Adjust HUD's gallery surfaces your four most recent clips directly in the overlay, with one click jumping straight to that clip in the Library.</p>
-    </div>
-    <ul class="library-feats">
-      <li><span class="icon i-play"></span><span><strong>Embedded playback</strong><span>Built on FlyleafLib, with standard scrubbing, seek, volume controls and a fullscreen mode. No need to open clips in an external player.</span></span></li>
-      <li><span class="icon i-scissors"></span><span><strong>Trim &amp; export</strong><span>ClipTrimmer lets you cut a clip down before sharing it.</span></span></li>
-      <li><span class="icon i-palette"></span><span><strong>7 built-in themes</strong><span>A fully re-skinnable UI across the whole app.</span></span></li>
-    </ul>
-  </div>
-
-  <div class="gallery reveal">
-    <h3 class="gallery-head">See it in the app</h3>
-    <div class="gallery-grid">
-      <div class="gallery-shot gallery-shot-app">
-        <img src="assets/chroma/app-library.png" alt="Chroma.GG clip library, browsing saved recordings">
-      </div>
-      <div class="gallery-shot gallery-shot-player">
-        <img src="assets/chroma/app-player.png" alt="Chroma.GG media player, trimming a How to Fish clip">
+          <p class="mc-note">Requires windowed or borderless windowed mode. Exclusive fullscreen games get minimized when this overlay takes focus.</p>
+        </aside>
       </div>
     </div>
   </div>
 </section>
 
-<section class="section" id="stack">
-  <div class="section-head"><span class="dash"></span><h2>Tech stack</h2></div>
-  <div class="reveal">
-    <div class="stack-grid">
-      <span class="stack-pill"><span class="icon i-controller"></span>.NET 8 / WPF</span>
-      <span class="stack-pill"><span class="icon i-cpu"></span>NVAPI (nvapi64.dll)</span>
-      <span class="stack-pill"><span class="icon i-lightning"></span>Event-driven, no polling</span>
-      <span class="stack-pill"><span class="icon i-video"></span>DXGI + NVENC (H.264)</span>
-      <span class="stack-pill"><span class="icon i-monitor"></span>Windows 10/11, NVIDIA GPU</span>
+<!-- ============ BAND ============ -->
+<div class="band" aria-hidden="true">
+  <div class="band-in" id="band">
+    <span class="band-item"><span class="i i-monitor"></span>Per-game <b>Gamma · Contrast · Vibrance</b></span>
+    <span class="band-item"><span class="i i-bolt"></span><b>SetWinEventHook</b> focus tracking</span>
+    <span class="band-item"><span class="i i-video"></span><b>DXGI → NVENC</b> capture</span>
+    <span class="band-item"><span class="i i-chart"></span><b>RTSS</b> frame timing</span>
+    <span class="band-item"><span class="i i-crosshair"></span>Click-through <b>crosshair</b></span>
+    <span class="band-item"><span class="i i-palette"></span><b>7</b> built-in themes</span>
+    <span class="band-item"><span class="i i-squares"></span><b>Steam + Epic</b> library scan</span>
+    <span class="band-item"><span class="i i-wave"></span><b>Per-app</b> audio mixing</span>
+  </div>
+</div>
+
+<!-- ============ STATS ============ -->
+<section class="sec" style="padding-bottom:0">
+  <div class="wrap">
+    <div class="stats rv">
+      <div class="stat"><b data-cnt="300" data-suf="ms">300ms</b><span>Focus debounce, so overlays never make your screen flicker</span></div>
+      <div class="stat"><span class="stat-pre">Up to</span><b data-cnt="120" data-suf="fps">120fps</b><span>Recording headroom at 50&nbsp;Mbps, more than most rigs will ever ask for</span></div>
+      <div class="stat"><b data-cnt="6">6</b><span>Colour axes: gamma, contrast, brightness, vibrance, temp, hue</span></div>
+      <div class="stat"><b data-cnt="0">0</b><span>Polling loops, background timers or injected DLLs</span></div>
     </div>
-    <div class="stack-note">
-      <h3>Architecture notes</h3>
-      <p>Code-behind architecture, no MVVM framework. x64-only, since NVAPI ships only as a 64-bit DLL. Focus tracking runs on <code>SetWinEventHook</code>, hotkeys on raw Win32, and theme reloads on <code>FileSystemWatcher</code>, keeping the whole app event-driven rather than polling in a loop. Capture pipeline: DXGI Desktop Duplication into NVENC hardware encoding, muxed with WASAPI loopback audio via Media Foundation.</p>
+
+    <div class="grid4 rv" style="margin-top:22px">
+      <div class="gcard"><span class="i i-monitor"></span><h4>Display profiles</h4><p>Six colour axes per game, applied at the driver's output ramp the moment that window takes focus.</p></div>
+      <div class="gcard"><span class="i i-crosshair"></span><h4>Crosshair overlay</h4><p>Click-through, per-profile, with a favourites row. No code ever loaded into your game.</p></div>
+      <div class="gcard"><span class="i i-chart"></span><h4>Performance HUD</h4><p>FPS from RTSS plus CPU, RAM, GPU, VRAM and temps, anchored anywhere on screen.</p></div>
+      <div class="gcard"><span class="i i-video"></span><h4>Instant replay</h4><p>A rolling GPU-encoded buffer, one hotkey to save, with library, player and trimmer built in.</p></div>
     </div>
   </div>
 </section>
 
-<section class="section">
-  <div class="cta reveal">
-    <h2>Want to know more?</h2>
-    <p>Chroma.GG is actively in development. Reach out if you'd like a walkthrough, early access, or to talk through how it's built.</p>
-    <a href="index.html#contact" class="btn btn-solid">Get in touch</a>
+<!-- ============ TOUR ============ -->
+<section class="sec" id="tour">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <h2 class="sec-h">Five tools that already live on your machine, minus four tray icons.</h2>
+      <p class="sec-p">Everything below actually works. Drag the sliders, move the HUD, switch the crosshair. Same behaviour as the app, just running in a browser.</p>
+    </div>
+
+    <div class="tour-tabs rv" role="tablist">
+      <button class="tt on" role="tab" data-p="p-shift"><span class="i i-monitor"></span>ChromaShift</button>
+      <button class="tt" role="tab" data-p="p-comp"><span class="i i-squares"></span>Companion</button>
+      <button class="tt" role="tab" data-p="p-cross"><span class="i i-crosshair"></span>Crosshair</button>
+      <button class="tt" role="tab" data-p="p-perf"><span class="i i-chart"></span>Performance</button>
+      <button class="tt" role="tab" data-p="p-rep"><span class="i i-video"></span>Replay</button>
+    </div>
+
+    <!-- SHIFT -->
+    <div class="pane on" id="p-shift">
+      <div class="pane-copy">
+        <h3>Your colours follow the game</h3>
+        <p>Bind a profile to an <code style="font-family:var(--m);font-size:.86em;color:var(--a1)">.exe</code> and Chroma.GG applies it the instant that window takes focus, then puts your desktop back exactly as it was when you tab out. No manual switching, no trips to the NVIDIA Control Panel.</p>
+        <ul class="feat">
+          <li><span class="i i-check"></span><span><b>Six colour axes.</b> Gamma, contrast, brightness, digital vibrance, temperature and hue, saved per game.</span></li>
+          <li><span class="i i-check"></span><span><b>Applied at display level.</b> Written straight to the GPU's output ramp, so it shows up in your recordings and screenshots too. It isn't a translucent window sitting over the game.</span></li>
+          <li><span class="i i-check"></span><span><b>Overlay-proof.</b> A 300&nbsp;ms debounce swallows the focus flicker Discord, Steam and RTSS overlays cause.</span></li>
+        </ul>
+        <span class="tag">focus hook: <b>SetWinEventHook</b> · not a timer</span>
+      </div>
+      <div>
+        <div class="stage" data-ba>
+          <img src="assets/chroma/val-after.jpg" alt="Game scene with a Chroma.GG profile applied" class="ba-after">
+          <div class="ba-clip" data-ba-clip><img src="assets/chroma/val-before.jpg" alt="The same scene on default display settings" class="ba-before"></div>
+          <span class="ba-tag l">Default</span>
+          <span class="ba-tag r">Chroma.GG</span>
+          <div class="ba-line" data-ba-line><span class="ba-grip"><span class="i i-arrow-l"></span><span class="i i-arrow"></span></span></div>
+        </div>
+        <div class="stage-bar">
+          <p class="stage-note">Drag to compare. Same monitor, same scene, profile on and off.</p>
+          <div class="scenes" data-scenes>
+            <button class="scene on" data-b="assets/chroma/val-before.jpg" data-a="assets/chroma/val-after.jpg">Valorant</button>
+            <button class="scene" data-b="assets/chroma/outside-before.jpg" data-a="assets/chroma/outside-after.jpg">Tarkov · Daylight</button>
+            <button class="scene" data-b="assets/chroma/room-before.jpg" data-a="assets/chroma/room-after.jpg">Tarkov · Low light</button>
+            <button class="scene" data-b="assets/chroma/office-before.jpg" data-a="assets/chroma/office-after.jpg">Tarkov · Interior</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPANION -->
+    <div class="pane" id="p-comp">
+      <div class="pane-copy">
+        <h3>Everything launches together. Everything closes together.</h3>
+        <p>Group up the apps you always open alongside a game: voice comms, stat trackers, music. Start the game, they start with it. Close the game, Chroma.GG shuts them down so nothing sits idle eating RAM for the rest of the day.</p>
+        <ul class="feat">
+          <li><span class="i i-check"></span><span><b>Per-companion launch delay</b> so heavier apps don't fight the game for I/O on startup.</span></li>
+          <li><span class="i i-check"></span><span><b>Steam and Epic library scanning</b> plus an installed-apps index, so you pick from a list instead of hunting for <code style="font-family:var(--m);font-size:.86em;color:var(--a1)">.exe</code> paths.</span></li>
+          <li><span class="i i-check"></span><span><b>Close-together is optional</b> per companion, because you don't always want your music to die with the match.</span></li>
+        </ul>
+        <span class="tag">watcher: <b>event-driven</b> process lifecycle</span>
+      </div>
+      <div>
+        <div class="demo" id="demo">
+          <div class="demo-top">
+            <div class="demo-ic"><span class="i i-pad"></span></div>
+            <div><h4>Escape From Tarkov</h4><span class="dstat" id="dstat">Not running</span></div>
+            <button class="btn btn-p btn-sm" id="dbtn">Launch</button>
+          </div>
+          <div class="apps">
+            <div class="app" data-ram="210" data-cpu="2"><div class="app-ic"><span class="i i-bolt"></span></div><b>Blitz.GG</b><small class="s">idle</small></div>
+            <div class="app" data-ram="480" data-cpu="9"><div class="app-ic"><span class="i i-cast"></span></div><b>OBS Studio</b><small class="s">idle</small></div>
+            <div class="app" data-ram="260" data-cpu="1"><div class="app-ic"><span class="i i-spotify"></span></div><b>Spotify</b><small class="s">idle</small></div>
+          </div>
+          <div class="freed">
+            <div class="freed-t"><span id="flabel">Launch, then close, to see what gets reclaimed</span><b id="fval"></b></div>
+            <div class="freed-tr"><div class="freed-f" id="ffill"></div></div>
+          </div>
+        </div>
+        <p class="stage-note" style="margin-top:14px">A rough demo of the group lifecycle. Real numbers depend on your own apps.</p>
+      </div>
+    </div>
+
+    <!-- CROSSHAIR -->
+    <div class="pane" id="p-cross">
+      <div class="pane-copy">
+        <h3>A crosshair that isn't the game's problem</h3>
+        <p>A click-through overlay window drawn above the game, bound per profile so each title keeps its own shape. It never intercepts input, never touches the game process, and hides itself while you're aiming down sights if you want it to.</p>
+        <ul class="feat">
+          <li><span class="i i-check"></span><span><b>Custom shapes and colours,</b> with a favourites row for switching between saved marks fast.</span></li>
+          <li><span class="i i-check"></span><span><b>Hide while right-click is held,</b> so it doesn't fight your scope.</span></li>
+          <li><span class="i i-check"></span><span><b>No injection.</b> It's an ordinary layered window. Chroma.GG never loads code into a game.</span></li>
+        </ul>
+        <span class="tag" style="border-color:rgba(251,191,36,.3)"><b style="color:#fbbf24">Read first:</b> some anti-cheats flag overlays, so check a game's rules</span>
+      </div>
+      <div>
+        <div class="stage" id="xhStage">
+          <video autoplay loop muted playsinline poster="assets/chroma/perf-poster.jpg"><source src="assets/chroma/perf-loop.mp4" type="video/mp4"></video>
+          <div class="xh on" id="xh" data-s="dot">
+            <svg class="s-dot" viewBox="0 0 32 32" width="22" height="22"><circle cx="16" cy="16" r="4.4" fill="#000" fill-opacity=".5"/><circle cx="16" cy="16" r="3" fill="#fff"/></svg>
+            <svg class="s-cross" viewBox="0 0 32 32" width="22" height="22"><g stroke="#000" stroke-opacity=".5" stroke-width="4.6" stroke-linecap="round"><line x1="16" y1="4" x2="16" y2="28"/><line x1="4" y1="16" x2="28" y2="16"/></g><g stroke="#fff" stroke-width="2" stroke-linecap="round"><line x1="16" y1="4" x2="16" y2="28"/><line x1="4" y1="16" x2="28" y2="16"/></g></svg>
+            <svg class="s-tdot" viewBox="0 0 32 32" width="22" height="22"><g stroke="#000" stroke-opacity=".5" stroke-width="4.6" stroke-linecap="round"><line x1="16" y1="3" x2="16" y2="10"/><line x1="3" y1="16" x2="10" y2="16"/><line x1="22" y1="16" x2="29" y2="16"/><line x1="16" y1="22" x2="16" y2="29"/></g><g stroke="#fff" stroke-width="2" stroke-linecap="round"><line x1="16" y1="3" x2="16" y2="10"/><line x1="3" y1="16" x2="10" y2="16"/><line x1="22" y1="16" x2="29" y2="16"/><line x1="16" y1="22" x2="16" y2="29"/></g></svg>
+          </div>
+        </div>
+        <div class="stage-bar">
+          <div class="xh-pick" id="xhPick">
+            <button class="xh-b on" data-s="dot" aria-label="Dot"><svg viewBox="0 0 32 32" width="19" height="19"><circle cx="16" cy="16" r="4.5" fill="#fff"/></svg></button>
+            <button class="xh-b" data-s="cross" aria-label="Cross"><svg viewBox="0 0 32 32" width="19" height="19"><g stroke="#fff" stroke-width="2.6" stroke-linecap="round"><line x1="16" y1="4" x2="16" y2="28"/><line x1="4" y1="16" x2="28" y2="16"/></g></svg></button>
+            <button class="xh-b" data-s="tdot" aria-label="Four-point"><svg viewBox="0 0 32 32" width="19" height="19"><g stroke="#fff" stroke-width="2.6" stroke-linecap="round"><line x1="16" y1="4" x2="16" y2="11"/><line x1="4" y1="16" x2="11" y2="16"/><line x1="21" y1="16" x2="28" y2="16"/><line x1="16" y1="21" x2="16" y2="28"/></g></svg></button>
+          </div>
+          <button class="btn btn-g btn-sm" id="xhBtn">Hide crosshair</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PERFORMANCE -->
+    <div class="pane" id="p-perf">
+      <div class="pane-copy">
+        <h3>Frame timing you can actually trust</h3>
+        <p>FPS comes from RTSS's shared memory, the same engine MSI Afterburner and CapFrameX read. Anything that measures frames from <em>outside</em> the game sits downstream of the Windows compositor, which throttles frame delivery on mixed-refresh multi-monitor setups and quietly corrupts the number.</p>
+        <ul class="feat">
+          <li><span class="i i-check"></span><span><b>CPU, RAM, GPU, VRAM and GPU temp</b> alongside FPS, with your actual hardware named.</span></li>
+          <li><span class="i i-check"></span><span><b>Six anchor positions</b> or free placement, single-line or stacked, matching your app theme.</span></li>
+          <li><span class="i i-check"></span><span><b>Reader, not a hook.</b> Chroma.GG reads RTSS's memory block, so it adds no injection surface of its own.</span></li>
+        </ul>
+        <span class="tag">source: <b>RTSS shared memory</b> · in-process Present() timing</span>
+      </div>
+      <div>
+        <div class="stage" id="perfStage">
+          <video autoplay loop muted playsinline poster="assets/chroma/perf-poster.jpg"><source src="assets/chroma/perf-loop.mp4" type="video/mp4"></video>
+          <div class="hud on" id="hud">
+            FPS <i id="hFps">—</i><u>|</u>CPU <i id="hCpu">30%</i><u>|</u>RAM <i id="hRam">45%</i><u>|</u>GPU <i id="hGpu">80%</i><u>|</u>GPU TEMP <i id="hTemp">64°C</i><u>|</u>VRAM <i id="hVram">70%</i>
+          </div>
+        </div>
+        <div class="stage-bar">
+          <p class="stage-note">Drag the HUD anywhere in the frame, same as in-game.</p>
+          <button class="btn btn-g btn-sm" id="hudBtn">Hide overlay</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPLAY -->
+    <div class="pane" id="p-rep">
+      <div class="pane-copy">
+        <h3>The last five minutes, always</h3>
+        <p>A rolling buffer holds recent gameplay in memory at up to 120&nbsp;fps and 50&nbsp;Mbps. Hit the clip key and it lands on disk. DXGI Desktop Duplication grabs the frames, NVENC encodes them on the GPU, and your desktop, mic and per-app audio get muxed in.</p>
+        <ul class="feat">
+          <li><span class="i i-check"></span><span><b>Match display profile.</b> Clips carry the same colour your screen had, instead of the flat raw capture.</span></li>
+          <li><span class="i i-check"></span><span><b>Per-app audio.</b> Pin Spotify or a browser and mix its track independently of desktop and mic.</span></li>
+          <li><span class="i i-check"></span><span><b>Library, player and trimmer built in.</b> Grouped by day and game, non-destructive in/out trimming, no external editor.</span></li>
+        </ul>
+        <span class="tag">pipeline: <b>DXGI → NVENC → MP4</b> · no capture border</span>
+      </div>
+      <div>
+        <div class="stage" id="repStage">
+          <video id="repVid" autoplay loop muted playsinline poster="assets/chroma/replay-poster.jpg"><source src="assets/chroma/replay-loop.mp4" type="video/mp4"></video>
+          <div class="cue" id="cue">F6</div>
+          <div class="toast" id="toast"><span class="toast-i"><span class="i i-video"></span></span><span><b>Clip saved</b><span>How to Fish · 1:59</span></span></div>
+        </div>
+        <div class="stage-bar"><p class="stage-note">A mock-up of the real thing: one keypress writes the buffer to disk and says so on screen.</p></div>
+      </div>
+    </div>
   </div>
 </section>
 
-<footer class="footer">
-  <span>© 2026 Darren Robson</span>
-  <a href="index.html" style="color:var(--accent)">← Back to portfolio</a>
+<!-- ============ LIBRARY SHOWCASE ============ -->
+<section class="sec" id="compare" style="padding-top:40px">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <h2 class="sec-h">Capture, browse, trim and share without leaving the window.</h2>
+      <p class="sec-p">Clips are grouped by day and tagged by the game they came from. Select one and it plays inline. Scrub it, set in and out points, save a trimmed copy. They're ordinary MP4s on disk the whole time.</p>
+    </div>
+    <div class="rv" style="display:grid;grid-template-columns:.95fr 1.05fr;gap:26px;align-items:center">
+      <figure class="app-shot">
+        <img src="assets/chroma/ui-library.png" alt="Chroma.GG Library tab showing clips grouped by day with an inline player and trim controls">
+      </figure>
+      <div>
+        <ul class="feat" style="gap:18px">
+          <li><span class="i i-play"></span><span><b>Inline playback on a real GPU surface.</b> Built on FlyleafLib after WPF's MediaElement and FFME both juddered. Full scrubbing, volume and fullscreen.</span></li>
+          <li><span class="i i-scissors"></span><span><b>Non-destructive trim.</b> Set in and out on the timeline, save a copy, keep the original.</span></li>
+          <li><span class="i i-squares"></span><span><b>Filter by game or type</b> (clips, recordings, trimmed), sorted newest first.</span></li>
+          <li><span class="i i-lock"></span><span><b>Nothing is locked in.</b> Reveal in folder opens plain MP4s you can drag anywhere.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PER-APP AUDIO ============ -->
+<section class="sec" id="audio">
+  <div class="wrap">
+    <div class="audio-grid">
+      <div class="rv">
+        <h2 class="sec-h" style="margin-bottom:16px">Your music shouldn't end up in your clip.</h2>
+        <p class="sec-p">Most tools hand you one flattened stereo track: the game, voice comms and whatever you had playing, all stuck together. Post that and you've published someone's album along with your clip.</p>
+        <p class="sec-p" style="margin-top:14px">Chroma.GG captures desktop audio, your microphone and each pinned app as <em>separate</em> WASAPI sources, then mixes them on its own clock. Pull Spotify to zero in the recording and you still hear it while you play. It just never reaches the clip.</p>
+        <ul class="feat" style="margin-top:26px">
+          <li><span class="i i-check"></span><span><b>Per-process capture.</b> Windows exposes no managed API for isolating one app's audio, so this rides hand-written COM interop against the process-loopback interface.</span></li>
+          <li><span class="i i-check"></span><span><b>Independent devices.</b> Pick a different mic and output device than the rest of Windows uses, each with its own level.</span></li>
+          <li><span class="i i-check"></span><span><b>Clock-locked.</b> Sources are resampled and mixed against a QPC clock, so nothing drifts out of sync over a long recording.</span></li>
+        </ul>
+        <span class="tag">pipeline: <b>WASAPI → mixer → Media Foundation</b></span>
+      </div>
+
+      <div class="mix rv" id="mix">
+        <p class="mix-lab">Recording audio</p>
+
+        <div class="mix-row" data-mix data-name="your voice">
+          <div class="mix-head"><span class="i i-mic"></span><b>Microphone</b><span class="mix-val">100%</span></div>
+          <span class="mix-dev">Microphone (HyperX QuadCast S)</span>
+          <div class="mix-track" data-track><div class="mix-fill" style="width:100%"></div><div class="mix-knob" style="left:100%"></div></div>
+        </div>
+
+        <div class="mix-row" data-mix data-name="Game audio">
+          <div class="mix-head"><span class="i i-speaker"></span><b>Desktop audio</b><span class="mix-val">100%</span></div>
+          <span class="mix-dev">Speakers (High Definition Audio)</span>
+          <div class="mix-track" data-track><div class="mix-fill" style="width:100%"></div><div class="mix-knob" style="left:100%"></div></div>
+        </div>
+
+        <p class="mix-lab mt">Per-app audio</p>
+
+        <div class="mix-row" data-mix data-app data-name="Discord">
+          <div class="mix-head">
+            <span class="i i-discord" style="color:#5865f2"></span><b>Discord</b><span class="pin">Pinned</span>
+            <span class="mix-val">85%</span>
+            <button class="mix-sw" data-sw aria-pressed="true" aria-label="Include Discord in recording"></button>
+          </div>
+          <div class="mix-track" data-track><div class="mix-fill" style="width:85%"></div><div class="mix-knob" style="left:85%"></div></div>
+        </div>
+
+        <div class="mix-row" data-mix data-app data-name="Spotify">
+          <div class="mix-head">
+            <span class="i i-spotify" style="color:#1db954"></span><b>Spotify</b><span class="pin">Pinned</span>
+            <span class="mix-val">100%</span>
+            <button class="mix-sw" data-sw aria-pressed="true" aria-label="Include Spotify in recording"></button>
+          </div>
+          <div class="mix-track" data-track><div class="mix-fill" style="width:100%"></div><div class="mix-knob" style="left:100%"></div></div>
+        </div>
+
+        <button class="mix-add" type="button" tabindex="-1">+ Add app…</button>
+
+        <div class="mix-out">
+          <b>What lands in the clip</b>
+          <span id="mixOut">Game audio + your voice + Discord + Spotify.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MID CTA ============ -->
+<section style="padding:20px 0">
+  <div class="wrap">
+    <div class="midcta rv">
+      <div>
+        <h3>It runs on your machine and nowhere else.</h3>
+        <p>No account, no launcher, no telemetry. Just a tray app that does five jobs and then stays out of your way.</p>
+      </div>
+      <a href="#get" class="btn btn-p">Request early access <span class="i i-arrow"></span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ THEMES ============ -->
+<section class="sec" id="themes">
+  <div class="wrap">
+    <div class="themes">
+      <div class="rv">
+        <span class="eyebrow">Seven built-in themes</span>
+        <h2 class="sec-h" style="margin-bottom:16px">It's called Chroma for a reason.</h2>
+        <p class="sec-p">Every surface in the app is themed from one resource dictionary, so a theme is a genuine re-skin: sliders, tabs, dialogs, the video player chrome, the in-game overlay. Drop your own into the themes folder and it loads at runtime.</p>
+        <p class="sec-p" style="margin-top:14px;font-size:.9rem;color:var(--dimmer)">Pick one to re-skin this page too.</p>
+        <div class="sw-grid" id="swGrid">
+          <button class="sw on" data-n="Chroma" data-1="#a855f7" data-2="#ec4899" style="background:linear-gradient(135deg,#a855f7,#ec4899)"></button>
+          <button class="sw" data-n="Crimson" data-1="#f43f5e" data-2="#dc2626" style="background:linear-gradient(135deg,#f43f5e,#dc2626)"></button>
+          <button class="sw" data-n="Violet" data-1="#8b5cf6" data-2="#6d28d9" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9)"></button>
+          <button class="sw" data-n="Matrix" data-1="#4ade80" data-2="#16a34a" style="background:linear-gradient(135deg,#4ade80,#16a34a)"></button>
+          <button class="sw" data-n="Ice" data-1="#38bdf8" data-2="#0284c7" style="background:linear-gradient(135deg,#38bdf8,#0284c7)"></button>
+          <button class="sw" data-n="Ember" data-1="#fb923c" data-2="#ea580c" style="background:linear-gradient(135deg,#fb923c,#ea580c)"></button>
+          <button class="sw" data-n="Win11" data-1="#60a5fa" data-2="#3b82f6" style="background:linear-gradient(135deg,#60a5fa,#3b82f6)"></button>
+        </div>
+      </div>
+      <div class="theme-prev rv">
+        <div class="tp-bar">
+          <span class="tp-mark"><img src="assets/chroma-icon-64.png" alt="">Chroma<em>.GG</em></span>
+          <span class="i i-gear"></span>
+        </div>
+        <div class="tp-tabs"><span>ChromaShift</span><span>ChromaCompanion</span><span>ChromaCrosshair</span><span>ChromaPerformance</span><span>ChromaReplay</span></div>
+        <div class="tp-row">
+          <div class="tp-row-t"><b>Gamma</b><span>1,03</span><span class="i i-reset" style="margin-left:0"></span></div>
+          <div class="tp-track"><div class="tp-fill" style="width:34%"></div><div class="tp-knob" style="left:34%"></div></div>
+        </div>
+        <div class="tp-row">
+          <div class="tp-row-t"><b>Contrast</b><span>0,51</span><span class="i i-reset" style="margin-left:0"></span></div>
+          <div class="tp-track"><div class="tp-fill" style="width:51%"></div><div class="tp-knob" style="left:51%"></div></div>
+        </div>
+        <div class="tp-row">
+          <div class="tp-row-t"><b>Brightness</b><span>0,00</span><span class="i i-reset" style="margin-left:0"></span></div>
+          <div class="tp-track"><div class="tp-fill" style="width:50%"></div><div class="tp-knob" style="left:50%"></div></div>
+        </div>
+        <div class="tp-row">
+          <div class="tp-row-t"><b>Digital Vibrance</b><span>73</span><span class="i i-reset" style="margin-left:0"></span></div>
+          <div class="tp-track"><div class="tp-fill" style="width:73%"></div><div class="tp-knob" style="left:73%"></div></div>
+        </div>
+        <div class="tp-adv">Advanced colour options <span class="i i-caret"></span></div>
+        <div class="tp-btns"><span class="tp-btn">Save Profile</span><span class="tp-btn p">Apply Now</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ENGINEERING ============ -->
+<section class="sec" id="engineering">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="eyebrow">Under the hood</span>
+      <h2 class="sec-h">Four decisions that made it work.</h2>
+      <p class="sec-p">Chroma.GG is a .NET 8 WPF app, x64-only, with no MVVM framework and no DI container. These are the problems that actually shaped it.</p>
+    </div>
+    <div class="eng">
+      <article class="card rv">
+        <div class="card-ic"><span class="i i-bolt"></span></div>
+        <span class="card-tag">Problem 01 · flicker</span>
+        <h3>Overlays kept strobing the screen</h3>
+        <p>Discord notifications, the Steam overlay and RTSS's OSD all steal foreground focus for a frame. Reacting to every focus event meant the display snapped back to the desktop profile and instantly returned. You would see it flash, several times a match.</p>
+        <p>Every focus change now passes through a single <code>DispatcherTimer</code>. Each event overwrites a pending profile and restarts a 300&nbsp;ms countdown, so only a focus state that <em>stays</em> current ever reaches the display. A flick away and back never lands at all, and a real alt-tab still feels instant.</p>
+      </article>
+      <article class="card rv">
+        <div class="card-ic"><span class="i i-monitor"></span></div>
+        <span class="card-tag">Problem 02 · no public API</span>
+        <h3>NVIDIA doesn't expose those sliders</h3>
+        <p>Digital Vibrance has a real, public NVAPI call. Gamma, contrast, brightness and hue don't. NVIDIA has confirmed on its own developer forum that the Control Panel's colour sliders sit behind a private, NDA-only API. No wrapper library can reach them.</p>
+        <p>So they don't go through NVAPI at all. Chroma.GG writes the Windows GDI gamma ramp directly, which is the same per-channel lookup table the driver ends up painting with. It's public, documented, works on any vendor's card, and it lands in captures too. It does have a real limit. Three independent channel curves can't do true hue rotation, so temperature and hue are scaled approximations.</p>
+      </article>
+      <article class="card rv">
+        <div class="card-ic"><span class="i i-chart"></span></div>
+        <span class="card-tag">Problem 03 · bad numbers</span>
+        <h3>Measuring FPS from outside the game lies</h3>
+        <p>ETW and DWM frame events sit downstream of the Windows compositor, which is documented to throttle a high-refresh display's frame delivery while a slower monitor is attached. That corrupts the reading on exactly the multi-monitor setups most PC players run.</p>
+        <p>RTSS avoids it by hooking <code>Present()</code> inside the game process, upstream of the compositor. Rather than reinvent that and take on an injection surface of its own, Chroma.GG reads RTSS's shared memory block. It's the same source Afterburner's OSD uses.</p>
+      </article>
+      <article class="card rv">
+        <div class="card-ic"><span class="i i-video"></span></div>
+        <span class="card-tag">Problem 04 · capture cost</span>
+        <h3>Recording that doesn't cost you frames</h3>
+        <p>Capture runs on DXGI Desktop Duplication rather than Windows.Graphics.Capture, because it draws no capture-indicator border and needs no package identity grant. Frames stay on the GPU through HLSL colour-correction and cursor compositing, then go straight into NVENC.</p>
+        <p>Audio is a parallel WASAPI pipeline: desktop loopback, microphone and per-process capture, resampled and mixed against a QPC clock, then muxed to MP4 through Media Foundation.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SPECS ============ -->
+<section class="sec" id="specs">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <h2 class="sec-h">What it needs, and what it does.</h2>
+    </div>
+    <div class="spec-grid rv">
+      <div class="spec">
+        <h3>System requirements</h3>
+        <dl>
+          <div><dt>Operating system</dt><dd>Windows 10 / 11 · x64</dd></div>
+          <div><dt>Graphics</dt><dd>NVIDIA GPU (NVAPI)</dd></div>
+          <div><dt>Runtime</dt><dd>.NET 8 Desktop</dd></div>
+          <div><dt>Replay encoding</dt><dd>NVENC-capable GPU</dd></div>
+          <div><dt>FPS readout</dt><dd>RTSS (auto-launched)</dd></div>
+          <div><dt>Admin rights</dt><dd>Not required</dd></div>
+        </dl>
+      </div>
+      <div class="spec">
+        <h3>Capture &amp; capability</h3>
+        <dl>
+          <div><dt>Replay buffer</dt><dd>Up to 5 min · in memory</dd></div>
+          <div><dt>Frame rate</dt><dd>Up to 120 fps</dd></div>
+          <div><dt>Bitrate</dt><dd>Up to 50 Mbps</dd></div>
+          <div><dt>Container</dt><dd>MP4 / H.264</dd></div>
+          <div><dt>Audio sources</dt><dd>Desktop · mic · per-app</dd></div>
+          <div><dt>Monitors</dt><dd>Primary or all displays</dd></div>
+        </dl>
+      </div>
+    </div>
+    <div class="pills rv">
+      <span class="pill"><span class="i i-pad"></span>.NET 8 · WPF</span>
+      <span class="pill"><span class="i i-cpu"></span>NVAPI + GDI gamma ramp</span>
+      <span class="pill"><span class="i i-bolt"></span>Event-driven, no polling</span>
+      <span class="pill"><span class="i i-video"></span>DXGI Duplication + NVENC</span>
+      <span class="pill"><span class="i i-wave"></span>WASAPI + Media Foundation</span>
+      <span class="pill"><span class="i i-hook"></span>Direct3D 11 · HLSL shaders</span>
+      <span class="pill"><span class="i i-palette"></span>Runtime-loadable themes</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="sec" id="faq">
+  <div class="wrap">
+    <div class="sec-head rv" style="text-align:center">
+      <h2 class="sec-h" style="margin:0 auto 16px">Things worth asking before you install anything.</h2>
+    </div>
+    <div class="faq rv">
+      <details class="q"><summary>Is this safe to run with anti-cheat? <span class="i i-caret"></span></summary>
+        <p class="q-a">Chroma.GG never injects code into a game. Display profiles are written to the GPU's output ramp, focus is read through a standard Windows event hook, and FPS comes from RTSS's own shared memory rather than a hook of its own. That said, the crosshair overlay is a window drawn above the game, and some anti-cheats detect overlay windows while some games' rules treat any crosshair aid as unauthorised regardless of how it's drawn. The app tells you that right at the toggle instead of burying it in a EULA. Check a game's terms before you turn it on.</p>
+      </details>
+      <details class="q"><summary>Why NVIDIA only? <span class="i i-caret"></span></summary>
+        <p class="q-a">Digital vibrance is applied through NVAPI, which ships as a 64-bit NVIDIA library, and replay encoding uses NVENC. The gamma, contrast and brightness path is vendor-neutral GDI, but the full feature set assumes an NVIDIA GPU today.</p>
+      </details>
+      <details class="q"><summary>Will it cost me frames? <span class="i i-caret"></span></summary>
+        <p class="q-a">Idle cost is effectively nothing, because there's no polling loop anywhere in the app. Focus tracking is an OS callback that only fires when focus actually changes, hotkeys use <code>RegisterHotKey</code>, and theme reloads use a file watcher. Replay is the one genuinely expensive feature, and it runs on the GPU's dedicated encoder rather than your render budget.</p>
+      </details>
+      <details class="q"><summary>Do my colour settings show up in clips and screenshots? <span class="i i-caret"></span></summary>
+        <p class="q-a">Yes, if you want them to. Because profiles are applied at display-output level, a raw capture would normally miss them, so "match display profile" re-applies your active gamma, contrast, brightness, vibrance and hue to captured frames, so a clip looks like what you were actually playing.</p>
+      </details>
+      <details class="q"><summary>What state is it in? <span class="i i-caret"></span></summary>
+        <p class="q-a">Display profiles, companion groups, crosshair and the performance overlay are built and in daily use. ChromaReplay's interface, library, player and trimmer are complete and the capture pipeline is being wired up behind them. That's why this page says early access rather than download.</p>
+      </details>
+      <details class="q"><summary>Who makes it? <span class="i i-caret"></span></summary>
+        <p class="q-a">Darren Robson, one developer. Chroma.GG started as a personal project built around things that annoyed me while playing. I write the codebase to be read, so every non-obvious decision carries a comment explaining why, including the ones I got wrong the first time.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="sec" id="get" style="padding-top:20px">
+  <div class="wrap">
+    <div class="cta rv">
+      <h2>Want it on your machine?</h2>
+      <p>Chroma.GG is in active development and not publicly released yet. Get in touch for early access, a walkthrough of how it's built, or just to tell me what's missing.</p>
+      <div class="cta-b">
+        <a href="#" data-todo="set early-access destination" class="btn btn-p">Request early access <span class="i i-arrow"></span></a>
+      </div>
+      <p class="cta-note">Windows 10/11 · NVIDIA · free · no account required</p>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-cols">
+      <div>
+        <span class="brand" style="margin:0"><img src="assets/chroma-icon-64.png" alt="" width="20" height="20"> <b>Chroma</b><em>.GG</em></span>
+        <p class="foot-blurb">A Windows tray app for per-game display tuning, overlays and instant replay. Built by one developer, in the open.</p>
+      </div>
+      <div>
+        <h5>The app</h5>
+        <ul>
+          <li><a href="#tour">Features</a></li>
+          <li><a href="#audio">Per-app audio</a></li>
+          <li><a href="#themes">Themes</a></li>
+          <li><a href="#specs">System requirements</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Built with</h5>
+        <ul>
+          <li><a href="#engineering">.NET 8 · WPF</a></li>
+          <li><a href="#engineering">NVAPI · GDI gamma ramp</a></li>
+          <li><a href="#engineering">DXGI · NVENC · WASAPI</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-in">
+      <p>© 2026 Darren Robson</p>
+      <p class="sp">Windows 10/11 · NVIDIA · free</p>
+    </div>
+  </div>
 </footer>
 
-<script src="shader-curtain.js"></script>
 <script>
-document.querySelectorAll('[data-ba]').forEach(function(slider){
-  var frame=slider.querySelector('[data-ba-frame]');
-  var handle=slider.querySelector('[data-ba-handle]');
-  var range=slider.querySelector('[data-ba-range]');
-  if(!frame||!handle||!range) return;
+(function(){
+var mq=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  function setSplit(pct){
-    pct=Math.max(0,Math.min(100,pct));
-    frame.style.setProperty('--split',pct+'%');
-    handle.style.setProperty('--split',pct+'%');
-    range.value=pct;
-  }
+/* nav + progress */
+var nav=document.getElementById('nav'),prog=document.getElementById('prog');
+function onScroll(){
+  var y=window.scrollY||document.documentElement.scrollTop;
+  nav.classList.toggle('stuck',y>12);
+  var h=document.documentElement;
+  prog.style.width=((h.scrollTop/((h.scrollHeight-h.clientHeight)||1))*100)+'%';
+}
+addEventListener('scroll',onScroll,{passive:true});onScroll();
 
-  range.addEventListener('input',function(){ setSplit(parseFloat(range.value)); });
+/* mobile nav */
+var bg=document.getElementById('burger'),mn=document.getElementById('mnav');
+bg.addEventListener('click',function(){
+  var on=mn.classList.toggle('on');
+  bg.classList.toggle('on',on);bg.setAttribute('aria-expanded',String(on));
+});
+mn.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){mn.classList.remove('on');bg.classList.remove('on');bg.setAttribute('aria-expanded','false');});});
 
-  var dragging=false;
-  function pctFromClientX(clientX){
-    var rect=frame.getBoundingClientRect();
-    return ((clientX-rect.left)/rect.width)*100;
-  }
-  frame.addEventListener('pointerdown',function(e){
-    dragging=true;
-    frame.setPointerCapture(e.pointerId);
-    setSplit(pctFromClientX(e.clientX));
+/* duplicate marquee for seamless loop */
+var band=document.getElementById('band');
+if(band) band.innerHTML+=band.innerHTML;
+
+/* tabs */
+var tabs=document.querySelectorAll('.tt');
+tabs.forEach(function(t){
+  t.addEventListener('click',function(){
+    tabs.forEach(function(x){x.classList.remove('on')});
+    document.querySelectorAll('.pane').forEach(function(p){p.classList.remove('on')});
+    t.classList.add('on');
+    var pane=document.getElementById(t.dataset.p);
+    pane.classList.add('on');
+    pane.querySelectorAll('video').forEach(function(v){var pr=v.play();if(pr&&pr.catch)pr.catch(function(){});});
   });
-  frame.addEventListener('pointermove',function(e){
-    if(!dragging) return;
-    setSplit(pctFromClientX(e.clientX));
-  });
-  frame.addEventListener('pointerup',function(){ dragging=false; });
-  frame.addEventListener('pointercancel',function(){ dragging=false; });
-
-  setSplit(50);
 });
 
-(function(){
-  var demo=document.getElementById('companionDemo');
-  if(!demo) return;
-  var toggle=document.getElementById('demoToggle');
-  var status=document.getElementById('demoStatus');
-  var appCards=demo.querySelectorAll('.demo-app');
-  var freedLabel=document.getElementById('freedLabel');
-  var freedValue=document.getElementById('freedValue');
-  var freedFill=document.getElementById('freedFill');
-  var running=false;
-  var hasRun=false;
+/* before / after */
+document.querySelectorAll('[data-ba]').forEach(function(st){
+  var clip=st.querySelector('[data-ba-clip]'),line=st.querySelector('[data-ba-line]');
+  function set(p){p=Math.max(0,Math.min(100,p));st.style.setProperty('--split',p+'%');clip.style.setProperty('--split',p+'%');line.style.setProperty('--split',p+'%');}
+  var drag=false;
+  function pct(x){var r=st.getBoundingClientRect();return ((x-r.left)/r.width)*100;}
+  st.addEventListener('pointerdown',function(e){drag=true;st.setPointerCapture(e.pointerId);set(pct(e.clientX));});
+  st.addEventListener('pointermove',function(e){if(drag)set(pct(e.clientX));});
+  st.addEventListener('pointerup',function(){drag=false;});
+  st.addEventListener('pointercancel',function(){drag=false;});
+  st.style.cursor='ew-resize';
+  set(50);
+  var scenes=st.parentElement.querySelector('[data-scenes]');
+  if(scenes){
+    scenes.querySelectorAll('.scene').forEach(function(b){
+      b.addEventListener('click',function(){
+        scenes.querySelectorAll('.scene').forEach(function(x){x.classList.remove('on')});
+        b.classList.add('on');
+        st.querySelector('.ba-after').src=b.dataset.a;
+        st.querySelector('.ba-before').src=b.dataset.b;
+        set(50);
+      });
+    });
+  }
+});
 
-  var totalRam=0, totalCpu=0;
-  appCards.forEach(function(card){
-    totalRam+=parseInt(card.dataset.ram,10)||0;
-    totalCpu+=parseInt(card.dataset.cpu,10)||0;
+/* companion demo */
+(function(){
+  var d=document.getElementById('demo');if(!d)return;
+  var btn=document.getElementById('dbtn'),stat=document.getElementById('dstat'),
+      cards=d.querySelectorAll('.app'),lab=document.getElementById('flabel'),
+      val=document.getElementById('fval'),fill=document.getElementById('ffill');
+  var run=false,been=false,tRam=0,tCpu=0;
+  cards.forEach(function(c){tRam+=+c.dataset.ram||0;tCpu+=+c.dataset.cpu||0;});
+  function render(){
+    d.classList.toggle('run',run);
+    stat.textContent=run?'Running · 3 companions':'Not running';
+    btn.textContent=run?'Close':'Launch';
+    cards.forEach(function(c){
+      c.querySelector('.s').textContent=run?((+c.dataset.ram)+' MB · '+(+c.dataset.cpu)+'%'):'idle';
+    });
+    if(run){lab.textContent='Companions running alongside the game';val.textContent=tRam+' MB in use';fill.style.width='100%';fill.style.background='rgba(255,255,255,.14)';}
+    else if(been){lab.textContent='Closed with the game, reclaimed';val.textContent=tRam+' MB · '+tCpu+'% CPU';fill.style.width='100%';fill.style.background='';}
+    else{lab.textContent='Launch, then close, to see what gets reclaimed';val.textContent='';fill.style.width='0%';}
+  }
+  btn.addEventListener('click',function(){run=!run;if(run)been=true;render();});
+  render();
+})();
+
+/* crosshair */
+(function(){
+  var xh=document.getElementById('xh'),btn=document.getElementById('xhBtn'),pick=document.getElementById('xhPick');
+  if(!xh)return;var on=true;
+  btn.addEventListener('click',function(){on=!on;xh.classList.toggle('on',on);btn.textContent=on?'Hide crosshair':'Show crosshair';});
+  pick.querySelectorAll('.xh-b').forEach(function(b){
+    b.addEventListener('click',function(){
+      pick.querySelectorAll('.xh-b').forEach(function(x){x.classList.remove('on')});
+      b.classList.add('on');xh.dataset.s=b.dataset.s;
+      if(!on){on=true;xh.classList.add('on');btn.textContent='Hide crosshair';}
+    });
   });
+})();
+
+/* perf hud */
+(function(){
+  var hud=document.getElementById('hud'),st=document.getElementById('perfStage'),btn=document.getElementById('hudBtn');
+  if(!hud)return;var on=true;
+  btn.addEventListener('click',function(){on=!on;hud.classList.toggle('on',on);btn.textContent=on?'Hide overlay':'Show overlay';});
+  var w={fps:{v:141,s:7,lo:98,hi:170},cpu:{v:34,s:2.5,lo:22,hi:54},ram:{v:58,s:.4,lo:54,hi:64},
+         gpu:{v:79,s:3,lo:66,hi:95},temp:{v:72,s:.6,lo:64,hi:80},vram:{v:41,s:.5,lo:36,hi:48}};
+  var el={fps:hFps,cpu:hCpu,ram:hRam,gpu:hGpu,temp:hTemp,vram:hVram};
+  function step(k){var o=w[k];o.v+=(Math.random()-.5)*2*o.s;if(Math.random()<.06)o.v+=(Math.random()-.5)*o.s*4;
+    o.v=Math.max(o.lo,Math.min(o.hi,o.v));return Math.round(o.v);}
+  function tick(){el.fps.textContent=step('fps');el.cpu.textContent=step('cpu')+'%';el.ram.textContent=step('ram')+'%';
+    el.gpu.textContent=step('gpu')+'%';el.temp.textContent=step('temp')+'°C';el.vram.textContent=step('vram')+'%';}
+  if(!mq){tick();setInterval(tick,900);}
+  var drag=false,ox=0,oy=0;
+  hud.addEventListener('pointerdown',function(e){drag=true;hud.classList.add('drag');hud.setPointerCapture(e.pointerId);
+    var r=hud.getBoundingClientRect();ox=e.clientX-r.left;oy=e.clientY-r.top;});
+  hud.addEventListener('pointermove',function(e){
+    if(!drag)return;var f=st.getBoundingClientRect();
+    var x=Math.max(6,Math.min(e.clientX-f.left-ox,f.width-hud.offsetWidth-6));
+    var y=Math.max(6,Math.min(e.clientY-f.top-oy,f.height-hud.offsetHeight-6));
+    hud.style.left=x+'px';hud.style.top=y+'px';});
+  function stop(){drag=false;hud.classList.remove('drag');}
+  hud.addEventListener('pointerup',stop);hud.addEventListener('pointercancel',stop);
+})();
+
+/* replay toast */
+(function(){
+  var v=document.getElementById('repVid'),cue=document.getElementById('cue'),to=document.getElementById('toast');
+  if(!v)return;var fired=false,t1,t2;
+  v.addEventListener('timeupdate',function(){
+    if(!v.duration)return;
+    if(v.duration-v.currentTime<3.2&&!fired){
+      fired=true;cue.classList.add('on');
+      t1=setTimeout(function(){cue.classList.remove('on');to.classList.add('on');},560);
+      t2=setTimeout(function(){to.classList.remove('on');},3600);
+    }
+    if(v.currentTime<.5&&fired){fired=false;cue.classList.remove('on');to.classList.remove('on');clearTimeout(t1);clearTimeout(t2);}
+  });
+})();
+
+/* per-app audio mixer */
+(function(){
+  var mix=document.getElementById('mix');if(!mix)return;
+  var out=document.getElementById('mixOut');
+
+  function setLevel(row,pct){
+    pct=Math.max(0,Math.min(100,Math.round(pct)));
+    row.querySelector('.mix-fill').style.width=pct+'%';
+    row.querySelector('.mix-knob').style.left=pct+'%';
+    row.querySelector('.mix-val').textContent=pct+'%';
+    row.classList.toggle('muted',pct===0);
+    var sw=row.querySelector('[data-sw]');
+    if(sw) sw.setAttribute('aria-pressed',String(pct>0));
+    render();
+  }
+  function level(row){ return parseInt(row.querySelector('.mix-val').textContent,10)||0; }
 
   function render(){
-    demo.classList.toggle('running',running);
-    status.textContent=running?'Running':'Not running';
-    toggle.textContent=running?'Close':'Launch';
-
-    appCards.forEach(function(card){
-      var ram=running?(parseInt(card.dataset.ram,10)||0):0;
-      var cpu=running?(parseInt(card.dataset.cpu,10)||0):0;
-      card.querySelector('.demo-app-status').textContent=running?'Running':'Idle';
-      card.querySelector('.stat-ram').textContent=ram+' MB';
-      card.querySelector('.stat-cpu').textContent=cpu+'% CPU';
+    var inc=[],exc=[];
+    mix.querySelectorAll('[data-mix]').forEach(function(row){
+      if(level(row)>0) inc.push(row.dataset.name);
+      else if(row.hasAttribute('data-app')) exc.push(row.dataset.name);
     });
-
-    if(running){
-      freedLabel.textContent='Apps active — nothing freed yet';
-      freedValue.textContent='';
-      freedFill.style.width='0%';
-    }else if(hasRun){
-      freedLabel.textContent='Freed on close';
-      freedValue.textContent=totalRam+' MB · '+totalCpu+'% CPU';
-      freedFill.style.width='100%';
-    }else{
-      freedLabel.textContent='Launch, then close, to see resources freed';
-      freedValue.textContent='';
-      freedFill.style.width='0%';
+    // desktop audio leads the sentence; sort is stable so the rest keeps DOM order
+    inc.sort(function(a,b){return (a==='Game audio'?-1:0)-(b==='Game audio'?-1:0)});
+    if(!inc.length){ out.textContent='Nothing. Every source is muted.'; return; }
+    var txt=inc.join(' + ');
+    txt=txt.charAt(0).toUpperCase()+txt.slice(1)+'.';
+    if(exc.length){
+      txt+=' '+(exc.length===1?exc[0]:exc.slice(0,-1).join(', ')+' and '+exc[exc.length-1])+' excluded.';
     }
+    out.textContent=txt;
   }
 
-  toggle.addEventListener('click',function(){
-    running=!running;
-    if(running) hasRun=true;
-    render();
+  var touched=false;
+
+  mix.querySelectorAll('[data-track]').forEach(function(track){
+    var row=track.closest('[data-mix]'),drag=false;
+    function fromX(x){var r=track.getBoundingClientRect();return ((x-r.left)/r.width)*100;}
+    track.addEventListener('pointerdown',function(e){touched=true;drag=true;track.setPointerCapture(e.pointerId);setLevel(row,fromX(e.clientX));});
+    track.addEventListener('pointermove',function(e){if(drag)setLevel(row,fromX(e.clientX));});
+    function stop(){drag=false;}
+    track.addEventListener('pointerup',stop);track.addEventListener('pointercancel',stop);
   });
+
+  mix.querySelectorAll('[data-sw]').forEach(function(sw){
+    sw.addEventListener('click',function(){
+      touched=true;
+      var row=sw.closest('[data-mix]');
+      setLevel(row, level(row)>0 ? 0 : 100);
+    });
+  });
+
+  // Intro: Spotify rides in at full level, then pulls itself to zero — the whole
+  // pitch of the section acted out once, the first time it scrolls into view.
+  var spotify=mix.querySelector('[data-name="Spotify"]'),played=false;
+  function playIntro(){
+    if(played)return; played=true;
+    if(mq||touched){setLevel(spotify,0);return;}
+    setTimeout(function(){
+      if(touched){setLevel(spotify,0);return;}
+      var t0=null,dur=1500;
+      requestAnimationFrame(function frame(ts){
+        if(touched)return;
+        if(!t0)t0=ts;
+        var p=Math.min((ts-t0)/dur,1);
+        setLevel(spotify,100*(1-(1-Math.pow(1-p,3))));
+        if(p<1)requestAnimationFrame(frame);
+      });
+    },550);
+  }
+  if('IntersectionObserver' in window){
+    var mio=new IntersectionObserver(function(es){
+      es.forEach(function(e){if(e.isIntersecting){playIntro();mio.disconnect();}});
+    },{threshold:.45});
+    mio.observe(mix);
+  }else{ setLevel(spotify,0); }
 
   render();
 })();
 
+/* theme swatches */
 (function(){
-  var hud=document.getElementById('perfHud');
-  var frame=document.getElementById('perfFrame');
-  var toggle=document.getElementById('perfToggle');
-  if(!hud||!frame||!toggle) return;
-
-  var visible=true;
-  toggle.textContent='Hide overlay';
-  var reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  toggle.addEventListener('click',function(){
-    visible=!visible;
-    hud.classList.toggle('visible',visible);
-    toggle.textContent=visible?'Hide overlay':'Show overlay';
-  });
-
-  // Live-ticking stats: small randomized jitter around a baseline, purely illustrative.
-  var els={
-    fps:document.getElementById('perfFps'),
-    cpu:document.getElementById('perfCpu'),
-    ram:document.getElementById('perfRam'),
-    gpu:document.getElementById('perfGpu'),
-    temp:document.getElementById('perfTemp'),
-    vram:document.getElementById('perfVram')
-  };
-  // Random-walk each stat instead of independent jitter, so values drift the
-  // way a real system does (correlated frame to frame) rather than jumping.
-  // step = how much it can move per tick, min/max = realistic bounds for an
-  // active gaming session, decimals = precision before rounding for display.
-  var walk={
-    fps:  {v:132, step:6,   min:95,  max:165, decimals:0},
-    cpu:  {v:30,  step:2.5, min:20,  max:52,  decimals:0},
-    ram:  {v:45,  step:0.3, min:41,  max:50,  decimals:0},
-    gpu:  {v:80,  step:3,   min:68,  max:94,  decimals:0},
-    temp: {v:64,  step:0.6, min:58,  max:74,  decimals:0},
-    vram: {v:70,  step:0.4, min:65,  max:75,  decimals:0}
-  };
-  function stepWalk(w){
-    w.v += (Math.random()-0.5)*2*w.step;
-    if(Math.random()<0.06) w.v += (Math.random()-0.5)*w.step*4; // occasional bigger swing (e.g. a frame dip, a scene change)
-    w.v=Math.max(w.min,Math.min(w.max,w.v));
-    return Math.round(w.v);
-  }
-  function tick(){
-    els.fps.textContent=stepWalk(walk.fps);
-    els.cpu.textContent=stepWalk(walk.cpu)+'%';
-    els.ram.textContent=stepWalk(walk.ram)+'%';
-    els.gpu.textContent=stepWalk(walk.gpu)+'%';
-    els.temp.textContent=stepWalk(walk.temp)+'°C';
-    els.vram.textContent=stepWalk(walk.vram)+'%';
-  }
-  if(!reduceMotion){
-    tick();
-    setInterval(tick,900);
-  }
-
-  // Drag anywhere within the frame.
-  var dragging=false, offX=0, offY=0;
-  hud.addEventListener('pointerdown',function(e){
-    dragging=true;
-    hud.classList.add('dragging');
-    hud.setPointerCapture(e.pointerId);
-    var r=hud.getBoundingClientRect();
-    offX=e.clientX-r.left;
-    offY=e.clientY-r.top;
-  });
-  hud.addEventListener('pointermove',function(e){
-    if(!dragging) return;
-    var fr=frame.getBoundingClientRect();
-    var x=e.clientX-fr.left-offX;
-    var y=e.clientY-fr.top-offY;
-    x=Math.max(6,Math.min(x,fr.width-hud.offsetWidth-6));
-    y=Math.max(6,Math.min(y,fr.height-hud.offsetHeight-6));
-    hud.style.left=x+'px';
-    hud.style.top=y+'px';
-  });
-  function stopDrag(){ dragging=false; hud.classList.remove('dragging'); }
-  hud.addEventListener('pointerup',stopDrag);
-  hud.addEventListener('pointercancel',stopDrag);
-})();
-
-(function(){
-  var mark=document.getElementById('xhMark');
-  var toggle=document.getElementById('crossToggle');
-  var picker=document.getElementById('crossPicker');
-  if(!mark||!toggle||!picker) return;
-
-  var visible=false;
-  toggle.addEventListener('click',function(){
-    visible=!visible;
-    mark.classList.toggle('visible',visible);
-    toggle.textContent=visible?'Hide crosshair':'Show crosshair';
-  });
-
-  picker.querySelectorAll('.cross-swatch').forEach(function(btn){
-    btn.addEventListener('click',function(){
-      picker.querySelectorAll('.cross-swatch').forEach(function(b){
-        b.classList.remove('active');
-        b.setAttribute('aria-pressed','false');
-      });
-      btn.classList.add('active');
-      btn.setAttribute('aria-pressed','true');
-      mark.dataset.style=btn.dataset.style;
+  var g=document.getElementById('swGrid');if(!g)return;
+  g.querySelectorAll('.sw').forEach(function(b){
+    b.addEventListener('click',function(){
+      g.querySelectorAll('.sw').forEach(function(x){x.classList.remove('on')});
+      b.classList.add('on');
+      document.documentElement.style.setProperty('--a1',b.dataset['1']);
+      document.documentElement.style.setProperty('--a2',b.dataset['2']);
     });
   });
 })();
 
+/* stat count-up */
 (function(){
-  var video=document.getElementById('replayVideo');
-  var keycue=document.getElementById('replayKeycue');
-  var toast=document.getElementById('replayToast');
-  if(!video||!keycue||!toast) return;
-
-  var triggered=false;
-  var hideTimer=null;
-
-  function showSequence(){
-    keycue.classList.add('visible');
-    setTimeout(function(){
-      keycue.classList.remove('visible');
-      toast.classList.add('visible');
-    },550);
-    hideTimer=setTimeout(function(){
-      toast.classList.remove('visible');
-    },3400);
-  }
-
-  video.addEventListener('timeupdate',function(){
-    if(!video.duration) return;
-    var remain=video.duration-video.currentTime;
-    if(remain<3.2 && !triggered){
-      triggered=true;
-      showSequence();
-    }
-    if(video.currentTime<0.5 && triggered){
-      triggered=false;
-      keycue.classList.remove('visible');
-      toast.classList.remove('visible');
-      if(hideTimer) clearTimeout(hideTimer);
-    }
-  });
+  var nums=document.querySelectorAll('[data-cnt]');
+  if(!nums.length||mq||!('IntersectionObserver' in window))return;
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if(!e.isIntersecting)return;
+      var el=e.target,to=+el.dataset.cnt,suf=el.dataset.suf||'',t0=null,dur=1100;
+      if(to===0){io.unobserve(el);return;}
+      function frame(ts){
+        if(!t0)t0=ts;
+        var p=Math.min((ts-t0)/dur,1);
+        el.textContent=Math.round(to*(1-Math.pow(1-p,3)))+suf;
+        if(p<1)requestAnimationFrame(frame);
+      }
+      el.textContent='0'+suf;requestAnimationFrame(frame);io.unobserve(el);
+    });
+  },{threshold:.6});
+  nums.forEach(function(n){io.observe(n)});
 })();
 
-var navToggle=document.getElementById('navToggle');
-var navMobile=document.getElementById('navMobile');
-if(navToggle && navMobile){
-  navToggle.addEventListener('click',function(){
-    var open=navMobile.classList.toggle('open');
-    navToggle.classList.toggle('open',open);
-    navToggle.setAttribute('aria-expanded',String(open));
-  });
-  navMobile.querySelectorAll('a').forEach(function(a){
-    a.addEventListener('click',function(){
-      navMobile.classList.remove('open');
-      navToggle.classList.remove('open');
-      navToggle.setAttribute('aria-expanded','false');
-    });
-  });
-}
-
-var railDot=document.getElementById('railDot');
-function raf(){
-  var h=document.documentElement;
-  var pct=h.scrollTop/(h.scrollHeight-h.clientHeight||1);
-  if(railDot) railDot.style.transform='translateY('+(pct*94)+'px)';
-  requestAnimationFrame(raf);
-}
-if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches) requestAnimationFrame(raf);
-
-var items=document.querySelectorAll('.reveal');
-if('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
-  items.forEach(function(el){io.observe(el)});
-}else{
-  items.forEach(function(el){el.classList.add('in')});
-}
+/* reveal */
+var rv=document.querySelectorAll('.rv');
+if('IntersectionObserver' in window && !mq){
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}})},{threshold:.1,rootMargin:'0px 0px -40px'});
+  rv.forEach(function(el){io.observe(el)});
+}else{rv.forEach(function(el){el.classList.add('in')});}
+})();
 </script>
 </body>
 </html>
