@@ -109,6 +109,9 @@ button{font-family:inherit}
 .i-lock{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/lock-simple.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/lock-simple.svg)}
 .i-caret{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/caret-down.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/caret-down.svg)}
 .i-gear{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/gear-six.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/gear-six.svg)}
+/* Phosphor's steam-logo reads as an abstract blob at pill size; the real
+   brand mark (Simple Icons) is what people actually recognize as Steam. */
+.i-steam{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/simple-icons@16.30.0/icons/steam.svg);mask-image:url(https://cdn.jsdelivr.net/npm/simple-icons@16.30.0/icons/steam.svg)}
 .i-reset{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/arrow-counter-clockwise.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/arrow-counter-clockwise.svg)}
 .i-mic{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/microphone.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/microphone.svg)}
 .i-speaker{-webkit-mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/speaker-high.svg);mask-image:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2/assets/regular/speaker-high.svg)}
@@ -147,14 +150,20 @@ button{font-family:inherit}
 .mnav a:last-child{border:none;color:var(--a2);font-weight:600}
 
 /* ---------- buttons ---------- */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:14px 25px;border-radius:999px;font-weight:600;font-size:.94rem;border:none;cursor:pointer;transition:transform .18s var(--e),filter .2s,background .2s,box-shadow .3s;white-space:nowrap;background:none;color:var(--ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 25px;border-radius:999px;font-weight:600;font-size:.94rem;border:none;cursor:pointer;transition:transform .18s var(--e),filter .2s,background .2s,box-shadow .3s;white-space:nowrap;background:none;color:var(--ink)}
 .btn:active{transform:scale(.975)}
 .btn-p{background:var(--grad);color:#fff;box-shadow:0 6px 26px -6px rgba(236,72,153,.6)}
 .btn-p:hover{filter:brightness(1.09);box-shadow:0 10px 34px -6px rgba(236,72,153,.75)}
 .btn-g{box-shadow:inset 0 0 0 1px var(--line);background:rgba(255,255,255,.03)}
 .btn-g:hover{box-shadow:inset 0 0 0 1px rgba(255,255,255,.24);background:rgba(255,255,255,.06)}
+/* "Coming soon" badges — a .btn that isn't a destination, so no pointer cursor
+   and no active-state squash; the hover brightness lift is kept, it just
+   reads as a little life in the badge rather than an affordance to click. */
+.btn-static{cursor:default}
+.btn-static:active{transform:none}
 .btn-sm{padding:9px 17px;font-size:.85rem}
-.btn .i{font-size:1.05em}
+.btn .i{font-size:1.3em}
+.btn .i-steam{font-size:1.55em}
 
 /* ---------- hero ---------- */
 .hero{padding:calc(var(--nav-h) + 70px) 0 40px;position:relative}
@@ -532,7 +541,7 @@ h1.hero-t span{background:linear-gradient(100deg,var(--a1),var(--a2) 55%,#fbbf24
       <a href="#faq">FAQ</a>
     </nav>
     <div class="nav-cta">
-      <a href="#get" class="btn btn-p btn-sm">Get early access</a>
+      <span class="btn btn-p btn-sm btn-static"><span class="i i-steam"></span>Coming soon</span>
     </div>
     <button class="burger" id="burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
   </div>
@@ -553,12 +562,12 @@ h1.hero-t span{background:linear-gradient(100deg,var(--a1),var(--a2) 55%,#fbbf24
   <div class="wrap">
     <div class="hero-grid">
       <div>
-        <span class="chip"><b>In development</b> Windows · NVIDIA · free</span>
+        <span class="chip"><b>In development</b> Windows · NVIDIA</span>
         <h1 class="hero-t">One tray icon.<br>Five tools.<br><span>Zero overhead.</span></h1>
         <p class="hero-p">Chroma.GG watches which window has focus and applies your per-game display profile the instant you alt-tab in, then puts it back when you leave. Crosshair, performance HUD, app groups and instant replay all run inside the same 30&nbsp;MB process.</p>
         <div class="hero-b">
-          <a href="#get" class="btn btn-p">Get early access <span class="i i-arrow"></span></a>
-          <a href="#tour" class="btn btn-g"><span class="i i-play"></span> See it work</a>
+          <span class="btn btn-p btn-static"><span class="i i-steam"></span>Coming soon</span>
+          <a href="#tour" class="btn btn-g"><span class="i i-play"></span>See it work</a>
         </div>
         <div class="hero-meta">
           <span><span class="i i-bolt"></span> Event-driven, never polls</span>
@@ -923,7 +932,7 @@ h1.hero-t span{background:linear-gradient(100deg,var(--a1),var(--a2) 55%,#fbbf24
         <h3>It runs on your machine and nowhere else.</h3>
         <p>No account, no launcher, no telemetry. Just a tray app that does five jobs and then stays out of your way.</p>
       </div>
-      <a href="#get" class="btn btn-p">Request early access <span class="i i-arrow"></span></a>
+      <span class="btn btn-p btn-static"><span class="i i-steam"></span>Coming soon</span>
     </div>
   </div>
 </section>
@@ -1093,11 +1102,11 @@ h1.hero-t span{background:linear-gradient(100deg,var(--a1),var(--a2) 55%,#fbbf24
   <div class="wrap">
     <div class="cta rv">
       <h2>Want it on your machine?</h2>
-      <p>Chroma.GG is in active development and not publicly released yet. Get in touch for early access, a walkthrough of how it's built, or just to tell me what's missing.</p>
+      <p>Chroma.GG is in active development and heading to Steam. Get in touch for a walkthrough of how it's built, or just to tell me what's missing.</p>
       <div class="cta-b">
-        <a href="#" data-todo="set early-access destination" class="btn btn-p">Request early access <span class="i i-arrow"></span></a>
+        <span class="btn btn-p btn-static"><span class="i i-steam"></span>Coming soon</span>
       </div>
-      <p class="cta-note">Windows 10/11 · NVIDIA · free · no account required</p>
+      <p class="cta-note">Windows 10/11 · NVIDIA · no account required</p>
     </div>
   </div>
 </section>
@@ -1130,7 +1139,7 @@ h1.hero-t span{background:linear-gradient(100deg,var(--a1),var(--a2) 55%,#fbbf24
     </div>
     <div class="foot-in">
       <p>© 2026 Darren Robson</p>
-      <p class="sp">Windows 10/11 · NVIDIA · free</p>
+      <p class="sp">Windows 10/11 · NVIDIA</p>
     </div>
   </div>
 </footer>
